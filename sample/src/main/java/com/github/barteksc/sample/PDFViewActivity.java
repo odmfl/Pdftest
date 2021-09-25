@@ -129,6 +129,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
     }
 
+
     private void displayFromUri(Uri uri) {
         pdfFileName = getFileName(uri);
 
