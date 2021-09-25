@@ -189,14 +189,8 @@ class PdfFile {
 
     private void prepareDocLen() {
         float length = 0;
-        for (int i = 0; i < getPagesCount(); i++) {
-            SizeF pageSize = pageSizes.get(i);
+        for (SizeF pageSize : pageSizes) {
             length += isVertical ? pageSize.getHeight() : pageSize.getWidth();
-            if (autoSpacing) {
-                length += pageSpacing.get(i);
-            } else if (i < getPagesCount() - 1) {
-                length += spacingPx;
-            }
         }
         int spacing = (spacingPx * (pageSizes.size() - 1)) + spacingTopPx + spacingBottomPx;
         documentLength = length + spacing;

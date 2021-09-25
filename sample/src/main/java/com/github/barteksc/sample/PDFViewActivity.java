@@ -120,9 +120,11 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 .enableAnnotationRendering(true)
                 .onLoad(this)
                 .scrollHandle(new DefaultScrollHandle(this))
+                .autoSpacing(false)
                 .spacing(10) // in dp
+                .spacingTop(24)
+                .spacingBottom(24)
                 .onPageError(this)
-                .pageFitPolicy(FitPolicy.BOTH)
                 .load();
     }
 
@@ -135,7 +137,10 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 .enableAnnotationRendering(true)
                 .onLoad(this)
                 .scrollHandle(new DefaultScrollHandle(this))
+                .autoSpacing(false)
                 .spacing(10) // in dp
+                .spacingTop(24)
+                .spacingBottom(24)
                 .onPageError(this)
                 .load();
     }
