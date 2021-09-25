@@ -126,6 +126,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 .spacingBottom(24)
                 .onPageError(this)
                 .load();
+
     }
 
     private void displayFromUri(Uri uri) {
