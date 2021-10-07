@@ -21,6 +21,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -30,6 +31,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.github.barteksc.pdfviewer.PDFView;
+import com.github.barteksc.pdfviewer.PDocSelection;
 import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener;
 import com.github.barteksc.pdfviewer.listener.OnPageChangeListener;
 import com.github.barteksc.pdfviewer.listener.OnPageErrorListener;
@@ -62,6 +64,8 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
     @ViewById
     PDFView pdfView;
+    @ViewById
+    PDocSelection sv;
 
     @NonConfigurationInstance
     Uri uri;
@@ -70,6 +74,14 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     Integer pageNumber = 0;
 
     String pdfFileName;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+
+        super.onCreate(savedInstanceState);
+
+    }
 
     @OptionsItem(R.id.pickFile)
     void pickFile() {
@@ -102,6 +114,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
     @AfterViews
     void afterViews() {
+        pdfView.setSelectionPaintView(sv);
         pdfView.setBackgroundColor(Color.LTGRAY);
         if (uri != null) {
             displayFromUri(uri);

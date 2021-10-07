@@ -57,6 +57,8 @@ public class PdfiumCore {
 
     private native int nativeGetPageHeightPoint(long pagePtr);
 
+    public native int nativeGetMixedLooseCharPos(long pagePtr, int offsetY, int offsetX, int width, int height, RectF pt, long tid, int index, boolean loose);
+
     //private native long nativeGetNativeWindow(Surface surface);
     //private native void nativeRenderPage(long pagePtr, long nativeWindowPtr);
     private native void nativeRenderPage(long pagePtr, Surface surface, int dpi,
@@ -79,7 +81,24 @@ public class PdfiumCore {
 
     private native long nativeGetBookmarkDestIndex(long docPtr, long bookmarkPtr);
 
+    public native String nativeGetText(long textPtr);
+
+    public native int nativeGetCharIndexAtCoord(long pagePtr, double width, double height, long textPtr, double posX, double posY, double tolX, double tolY);
+
+    private native void nativeRenderPageBitmap(long docPtr, long pagePtr, Bitmap bitmap, int dpi,
+                                               int startX, int startY,
+                                               int drawSizeHor, int drawSizeVer,
+                                               boolean renderAnnot);
+
+    public native long nativeGetLinkAtCoord(long pagePtr, double width, double height, double posX, double posY);
+
+    public native String nativeGetLinkTarget(long docPtr, long linkPtr);
+
+    public native long nativeLoadTextPage(long pagePtr);
+
     private native Size nativeGetPageSizeByIndex(long docPtr, int pageIndex, int dpi);
+
+    private native int nativeCountAndGetRects(long pagePtr, int offsetY, int offsetX, int width, int height, ArrayList<RectF> arr, long tid, int selSt, int selEd);
 
     private native long[] nativeGetPageLinks(long pagePtr);
 
@@ -88,6 +107,8 @@ public class PdfiumCore {
     private native String nativeGetLinkURI(long docPtr, long linkPtr);
 
     private native RectF nativeGetLinkRect(long linkPtr);
+
+    public native int nativeGetCharPos(long pagePtr, int offsetY, int offsetX, int width, int height, RectF pt, long tid, int index, boolean loose);
 
     private native Point nativePageCoordsToDevice(long pagePtr, int startX, int startY, int sizeX,
                                                   int sizeY, int rotate, double pageX, double pageY);
@@ -115,19 +136,36 @@ public class PdfiumCore {
         }
     }
 
+    public long openText(long pagePtr) {
+        synchronized (lock) {
+            return nativeLoadTextPage(pagePtr);
+        }
+    }
 
-    /** Context needed to get screen density */
+    public int getTextRects(long pagePtr, int offsetY, int offsetX, Size size, ArrayList<RectF> arr, long textPtr, int selSt, int selEd) {
+        synchronized (lock) {
+            return nativeCountAndGetRects(pagePtr, offsetY, offsetX, size.getWidth(), size.getHeight(), arr, textPtr, selSt, selEd);
+        }
+    }
+
+    /**
+     * Context needed to get screen density
+     */
     public PdfiumCore(Context ctx) {
         mCurrentDpi = ctx.getResources().getDisplayMetrics().densityDpi;
         Log.d(TAG, "Starting PdfiumAndroid " + BuildConfig.VERSION_NAME);
     }
 
-    /** Create new document from file */
+    /**
+     * Create new document from file
+     */
     public PdfDocument newDocument(ParcelFileDescriptor fd) throws IOException {
         return newDocument(fd, null);
     }
 
-    /** Create new document from file with password */
+    /**
+     * Create new document from file with password
+     */
     public PdfDocument newDocument(ParcelFileDescriptor fd, String password) throws IOException {
         PdfDocument document = new PdfDocument();
         document.parcelFileDescriptor = fd;
@@ -138,12 +176,16 @@ public class PdfiumCore {
         return document;
     }
 
-    /** Create new document from bytearray */
+    /**
+     * Create new document from bytearray
+     */
     public PdfDocument newDocument(byte[] data) throws IOException {
         return newDocument(data, null);
     }
 
-    /** Create new document from bytearray with password */
+    /**
+     * Create new document from bytearray with password
+     */
     public PdfDocument newDocument(byte[] data, String password) throws IOException {
         PdfDocument document = new PdfDocument();
         synchronized (lock) {
@@ -152,14 +194,18 @@ public class PdfiumCore {
         return document;
     }
 
-    /** Get total numer of pages in document */
+    /**
+     * Get total numer of pages in document
+     */
     public int getPageCount(PdfDocument doc) {
         synchronized (lock) {
             return nativeGetPageCount(doc.mNativeDocPtr);
         }
     }
 
-    /** Open page and store native pointer in {@link PdfDocument} */
+    /**
+     * Open page and store native pointer in {@link PdfDocument}
+     */
     public long openPage(PdfDocument doc, int pageIndex) {
         long pagePtr;
         synchronized (lock) {
@@ -170,7 +216,9 @@ public class PdfiumCore {
 
     }
 
-    /** Open range of pages and store native pointers in {@link PdfDocument} */
+    /**
+     * Open range of pages and store native pointers in {@link PdfDocument}
+     */
     public long[] openPage(PdfDocument doc, int fromIndex, int toIndex) {
         long[] pagesPtr;
         synchronized (lock) {
@@ -321,7 +369,9 @@ public class PdfiumCore {
         }
     }
 
-    /** Release native resources and opened file */
+    /**
+     * Release native resources and opened file
+     */
     public void closeDocument(PdfDocument doc) {
         synchronized (lock) {
             for (Integer index : doc.mNativePagesPtr.keySet()) {
@@ -335,14 +385,16 @@ public class PdfiumCore {
                 try {
                     doc.parcelFileDescriptor.close();
                 } catch (IOException e) {
-                /* ignore */
+                    /* ignore */
                 }
                 doc.parcelFileDescriptor = null;
             }
         }
     }
 
-    /** Get metadata for given document */
+    /**
+     * Get metadata for given document
+     */
     public PdfDocument.Meta getDocumentMeta(PdfDocument doc) {
         synchronized (lock) {
             PdfDocument.Meta meta = new PdfDocument.Meta();
@@ -359,7 +411,9 @@ public class PdfiumCore {
         }
     }
 
-    /** Get table of contents (bookmarks) for given document */
+    /**
+     * Get table of contents (bookmarks) for given document
+     */
     public List<PdfDocument.Bookmark> getTableOfContents(PdfDocument doc) {
         synchronized (lock) {
             List<PdfDocument.Bookmark> topLevel = new ArrayList<>();
@@ -389,7 +443,9 @@ public class PdfiumCore {
         }
     }
 
-    /** Get all links from given page */
+    /**
+     * Get all links from given page
+     */
     public List<PdfDocument.Link> getPageLinks(PdfDocument doc, int pageIndex) {
         synchronized (lock) {
             List<PdfDocument.Link> links = new ArrayList<>();

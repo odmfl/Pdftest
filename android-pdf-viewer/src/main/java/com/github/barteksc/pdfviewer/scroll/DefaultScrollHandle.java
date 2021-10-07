@@ -27,7 +27,7 @@ public class DefaultScrollHandle extends RelativeLayout implements ScrollHandle 
     protected Context context;
     private boolean inverted;
     private PDFView pdfView;
-    private float currentPos;
+    public float currentPos;
 
     private Handler handler = new Handler();
     private Runnable hidePageScrollerRunnable = new Runnable() {

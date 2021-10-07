@@ -30,12 +30,13 @@ import com.shockwave.pdfium.util.SizeF;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 class PdfFile {
 
     private static final Object lock = new Object();
-    private PdfDocument pdfDocument;
-    private PdfiumCore pdfiumCore;
+    public PdfDocument pdfDocument;
+    public PdfiumCore pdfiumCore;
     private int pagesCount = 0;
     /** Original page sizes */
     private List<Size> originalPageSizes = new ArrayList<>();
@@ -68,6 +69,7 @@ class PdfFile {
      * True if every page should fit separately according to the FitPolicy,
      * else the largest page fits and other pages scale relatively
      */
+
     private final boolean fitEachPage;
     /**
      * The pages the user want to display in order
@@ -264,6 +266,13 @@ class PdfFile {
         return --currentPage >= 0 ? currentPage : 0;
     }
 
+    public long getLinkAtPos(int currentPage,float posX, float posY, SizeF size) {
+
+        return pdfiumCore.nativeGetLinkAtCoord(pdfDocument.mNativePagesPtr.get(currentPage), size.getWidth(), size.getHeight(), posX, posY);
+    }
+    public String getLinkTarget(long lnkPtr) {
+        return pdfiumCore.nativeGetLinkTarget(pdfDocument.mNativeDocPtr, lnkPtr);
+    }
     public boolean openPage(int pageIndex) throws PageRenderingException {
         int docPage = documentPage(pageIndex);
         if (docPage < 0) {
@@ -274,6 +283,7 @@ class PdfFile {
             if (openedPages.indexOfKey(docPage) < 0) {
                 try {
                     pdfiumCore.openPage(pdfDocument, docPage);
+
                     openedPages.put(docPage, true);
                     return true;
                 } catch (Exception e) {
@@ -312,6 +322,7 @@ class PdfFile {
 
     public List<PdfDocument.Link> getPageLinks(int pageIndex) {
         int docPage = documentPage(pageIndex);
+
         return pdfiumCore.getPageLinks(pdfDocument, docPage);
     }
 

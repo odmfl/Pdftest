@@ -181,6 +181,7 @@ DLLEXPORT unsigned long STDCALL FPDFAction_GetURIPath(FPDF_DOCUMENT document,
                                                       void* buffer,
                                                       unsigned long buflen);
 
+
 // Function: FPDFDest_GetPageIndex
 //          Get page index of a destination.
 // Parameters:
@@ -191,6 +192,7 @@ DLLEXPORT unsigned long STDCALL FPDFAction_GetURIPath(FPDF_DOCUMENT document,
 //
 DLLEXPORT unsigned long STDCALL FPDFDest_GetPageIndex(FPDF_DOCUMENT document,
                                                       FPDF_DEST dest);
+
 
 // Function: FPDFLink_GetLinkAtPoint
 //     Find a link at specified point on a document page.
@@ -272,7 +274,7 @@ DLLEXPORT FPDF_BOOL STDCALL FPDFLink_Enumerate(FPDF_PAGE page,
                                                FPDF_LINK* linkAnnot);
 
 // Function: FPDFLink_GetAnnotRect
-//          Get the annotation rectangle. (Specified by the ¡°Rect¡± entry of
+//          Get the annotation rectangle. (Specified by the ï¿½ï¿½Rectï¿½ï¿½ entry of
 //          annotation dictionary).
 // Parameters:
 //          linkAnnot[in]       -   Handle to the link annotation.

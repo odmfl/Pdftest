@@ -105,7 +105,7 @@ DLLEXPORT double STDCALL FPDFText_GetFontSize(FPDF_TEXTPAGE text_page,
 // Comments:
 //          All positions are measured in PDF "user space".
 //
-DLLEXPORT void STDCALL FPDFText_GetCharBox(FPDF_TEXTPAGE text_page,
+DLLEXPORT FPDF_BOOL STDCALL FPDFText_GetCharBox(FPDF_TEXTPAGE text_page,
                                            int index,
                                            double* left,
                                            double* right,
@@ -158,6 +158,9 @@ DLLEXPORT int STDCALL FPDFText_GetText(FPDF_TEXTPAGE text_page,
                                        int count,
                                        unsigned short* result);
 
+
+
+
 // Function: FPDFText_CountRects
 //          Count number of rectangular areas occupied by a segment of texts.
 // Parameters:
@@ -198,12 +201,14 @@ DLLEXPORT int STDCALL FPDFText_CountRects(FPDF_TEXTPAGE text_page,
 // Return Value:
 //          None.
 //
-DLLEXPORT void STDCALL FPDFText_GetRect(FPDF_TEXTPAGE text_page,
+DLLEXPORT FPDF_BOOL STDCALL FPDFText_GetRect(FPDF_TEXTPAGE text_page,
                                         int rect_index,
                                         double* left,
                                         double* top,
                                         double* right,
                                         double* bottom);
+DLLEXPORT FPDF_BOOL STDCALL
+FPDFText_GetLooseCharBox(FPDF_TEXTPAGE text_page, int index, FS_RECTF* rect);
 
 // Function: FPDFText_GetBoundedText
 //          Extract unicode text within a rectangular boundary on the page.
