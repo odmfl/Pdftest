@@ -204,9 +204,7 @@ public class PDFView extends RelativeLayout {
      */
     CacheManager cacheManager;
 
-    /**
-     * Animation manager manage all offset and zoom animation
-     */
+    /** Animation manager manage all offset and zoom animation */
     private AnimationManager animationManager;
 
     /**
@@ -235,19 +233,13 @@ public class PDFView extends RelativeLayout {
      */
     private float currentYOffset = 0;
 
-    /**
-     * The zoom level, always >= 1
-     */
+    /** The zoom level, always >= 1 */
     private float zoom = 1f;
 
-    /**
-     * True if the PDFView has been recycled
-     */
+    /** True if the PDFView has been recycled */
     private boolean recycled = true;
 
-    /**
-     * Current state of the view
-     */
+    /** Current state of the view */
     private State state = State.DEFAULT;
 
     /**
@@ -287,9 +279,7 @@ public class PDFView extends RelativeLayout {
 
     private int defaultPage = 0;
 
-    /**
-     * True if should scroll through pages vertically instead of horizontally
-     */
+    /** True if should scroll through pages vertically instead of horizontally */
     private boolean swipeVertical = true;
 
     private boolean enableSwipe = true;
@@ -333,9 +323,7 @@ public class PDFView extends RelativeLayout {
      */
     private boolean renderDuringScale = false;
 
-    /**
-     * Antialiasing and bitmap filtering
-     */
+    /** Antialiasing and bitmap filtering */
     private boolean enableAntialiasing = true;
     private PaintFlagsDrawFilter antialiasFilter =
             new PaintFlagsDrawFilter(0, Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
@@ -348,26 +336,28 @@ public class PDFView extends RelativeLayout {
     /**
      * Add dynamic spacing to fit each page separately on the screen.
      */
+
+    private int spacingTopPx = 0;
+
+    private int spacingBottomPx = 0;
+
+    private boolean initialRender = true;
+
+    /**
+     * Add dynamic spacing to fit each page separately on the screen.
+     */
     private boolean autoSpacing = false;
 
-    /**
-     * Fling a single page at a time
-     */
+    /** Fling a single page at a time */
     private boolean pageFling = true;
 
-    /**
-     * Pages numbers used when calling onDrawAllListener
-     */
+    /** Pages numbers used when calling onDrawAllListener */
     private List<Integer> onDrawPagesNums = new ArrayList<>(10);
 
-    /**
-     * Holds info whether view has been added to layout and has width and height
-     */
+    /** Holds info whether view has been added to layout and has width and height */
     private boolean hasSize = false;
 
-    /**
-     * Holds last used Configurator that should be loaded when view has size
-     */
+    /** Holds last used Configurator that should be loaded when view has size */
     private Configurator waitingDocumentConfigurator;
 
     /**
@@ -683,6 +673,10 @@ public class PDFView extends RelativeLayout {
 
         page = pdfFile.determineValidPageNumberFrom(page);
         float offset = page == 0 ? 0 : -pdfFile.getPageOffset(page, zoom);
+        if (page == 0 && initialRender) {
+            initialRender = false;
+            offset += this.spacingTopPx;
+        }
         if (swipeVertical) {
             if (withAnimation) {
                 animationManager.startYAnimation(currentYOffset, offset);
@@ -766,7 +760,6 @@ public class PDFView extends RelativeLayout {
         }
         return pdfFile.getPagesCount();
     }
-
 
     public void setSwipeEnabled(boolean enableSwipe) {
         this.enableSwipe = enableSwipe;
@@ -1189,9 +1182,7 @@ public class PDFView extends RelativeLayout {
         }
     }
 
-    /**
-     * Draw a given PagePart on the canvas
-     */
+    /** Draw a given PagePart on the canvas */
     private void drawPart(Canvas canvas, PagePart part) {
         // Can seem strange, but avoid lot of calls
         RectF pageRelativeBounds = part.getPageRelativeBounds();
@@ -1272,9 +1263,7 @@ public class PDFView extends RelativeLayout {
         redrawSel();
     }
 
-    /**
-     * Called when the PDF is loaded
-     */
+    /** Called when the PDF is loaded */
     void loadComplete(PdfFile pdfFile) {
         state = State.LOADED;
 
@@ -1742,6 +1731,14 @@ public class PDFView extends RelativeLayout {
         return spacingPx;
     }
 
+    public int getSpacingTopPx() {
+        return spacingTopPx;
+    }
+
+    public int getSpacingBottomPx() {
+        return spacingBottomPx;
+    }
+
     public boolean isAutoSpacingEnabled() {
         return autoSpacing;
     }
@@ -1756,6 +1753,14 @@ public class PDFView extends RelativeLayout {
 
     private void setSpacing(int spacingDp) {
         this.spacingPx = Util.getDP(getContext(), spacingDp);
+    }
+
+    private void setSpacingTop(int spacingTopDp) {
+        this.spacingTopPx = Util.getDP(getContext(), spacingTopDp);
+    }
+
+    private void setSpacingBottom(int spacingBottomDp) {
+        this.spacingBottomPx = Util.getDP(getContext(), spacingBottomDp);
     }
 
     private void setAutoSpacing(boolean autoSpacing) {
@@ -1790,9 +1795,7 @@ public class PDFView extends RelativeLayout {
         return renderDuringScale;
     }
 
-    /**
-     * Returns null if document is not loaded
-     */
+    /** Returns null if document is not loaded */
     public PdfDocument.Meta getDocumentMeta() {
         if (pdfFile == null) {
             return null;
@@ -1800,9 +1803,7 @@ public class PDFView extends RelativeLayout {
         return pdfFile.getMetaData();
     }
 
-    /**
-     * Will be empty until document is loaded
-     */
+    /** Will be empty until document is loaded */
     public List<PdfDocument.Bookmark> getTableOfContents() {
         if (pdfFile == null) {
             return Collections.emptyList();
@@ -1810,9 +1811,7 @@ public class PDFView extends RelativeLayout {
         return pdfFile.getBookmarks();
     }
 
-    /**
-     * Will be empty until document is loaded
-     */
+    /** Will be empty until document is loaded */
     public List<PdfDocument.Link> getLinks(int page) {
         if (pdfFile == null) {
             return Collections.emptyList();
@@ -1820,44 +1819,32 @@ public class PDFView extends RelativeLayout {
         return pdfFile.getPageLinks(page);
     }
 
-    /**
-     * Use an asset file as the pdf source
-     */
+    /** Use an asset file as the pdf source */
     public Configurator fromAsset(String assetName) {
         return new Configurator(new AssetSource(assetName));
     }
 
-    /**
-     * Use a file as the pdf source
-     */
+    /** Use a file as the pdf source */
     public Configurator fromFile(File file) {
         return new Configurator(new FileSource(file));
     }
 
-    /**
-     * Use URI as the pdf source, for use with content providers
-     */
+    /** Use URI as the pdf source, for use with content providers */
     public Configurator fromUri(Uri uri) {
         return new Configurator(new UriSource(uri));
     }
 
-    /**
-     * Use bytearray as the pdf source, documents is not saved
-     */
+    /** Use bytearray as the pdf source, documents is not saved */
     public Configurator fromBytes(byte[] bytes) {
         return new Configurator(new ByteArraySource(bytes));
     }
 
-    /**
-     * Use stream as the pdf source. Stream will be written to bytearray, because native code does not support Java Streams
-     */
+    /** Use stream as the pdf source. Stream will be written to bytearray, because native code does not support Java Streams */
     public Configurator fromStream(InputStream stream) {
         return new Configurator(new InputStreamSource(stream));
     }
 
-    /**
-     * Use custom source as pdf source
-     */
+    /** Use custom source as pdf source */
     public Configurator fromSource(DocumentSource docSource) {
         return new Configurator(docSource);
     }
@@ -1909,6 +1896,10 @@ public class PDFView extends RelativeLayout {
         private boolean antialiasing = true;
 
         private int spacing = 0;
+
+        private int spacingTop = 0;
+
+        private int spacingBottom = 0;
 
         private boolean autoSpacing = false;
 
@@ -2031,12 +2022,21 @@ public class PDFView extends RelativeLayout {
             return this;
         }
 
+        public Configurator spacingTop(int spacingTop) {
+            this.spacingTop = spacingTop;
+            return this;
+        }
+        public Configurator spacingBottom(int spacingBottom) {
+            this.spacingBottom = spacingBottom;
+            return this;
+        }
+
         public Configurator autoSpacing(boolean autoSpacing) {
             this.autoSpacing = autoSpacing;
             return this;
         }
 
-        public Configurator pageFitPolicy(FitPolicy pageFitPolFicy) {
+        public Configurator pageFitPolicy(FitPolicy pageFitPolicy) {
             this.pageFitPolicy = pageFitPolicy;
             return this;
         }
@@ -2067,16 +2067,6 @@ public class PDFView extends RelativeLayout {
         }
 
         public void load() {
-            onTap(new OnTapListener() {
-                @Override
-                public boolean onTap(MotionEvent e) {
-/*
-                    long val = pdfFile.getLinkAtPos(getCurrentPage(), e.getX(), e.getY(), pdfFile.getPageSize(getCurrentPage()));
-                    Toast.makeText(getContext(), String.valueOf(val), Toast.LENGTH_SHORT).show();
-                    String p = pdfFile.getLinkTarget(val);*/
-                    return false;
-                }
-            });
             if (!hasSize) {
                 waitingDocumentConfigurator = this;
                 return;
@@ -2102,6 +2092,8 @@ public class PDFView extends RelativeLayout {
             PDFView.this.setScrollHandle(scrollHandle);
             PDFView.this.enableAntialiasing(antialiasing);
             PDFView.this.setSpacing(spacing);
+            PDFView.this.setSpacingTop(spacingTop);
+            PDFView.this.setSpacingBottom(spacingBottom);
             PDFView.this.setAutoSpacing(autoSpacing);
             PDFView.this.setPageFitPolicy(pageFitPolicy);
             PDFView.this.setFitEachPage(fitEachPage);
