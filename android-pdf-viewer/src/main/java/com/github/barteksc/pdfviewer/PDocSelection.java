@@ -17,7 +17,9 @@ import android.util.AttributeSet;
 import android.view.View;
 
 
-import com.github.barteksc.pdfviewer.scroll.DefaultScrollHandle;
+import com.github.barteksc.pdfviewer.model.SearchRecord;
+import com.github.barteksc.pdfviewer.model.SearchRecordItem;
+import com.github.barteksc.pdfviewer.util.Util;
 
 import java.util.ArrayList;
 
@@ -56,8 +58,6 @@ public class PDocSelection extends View {
     private final PointF vCursorPos = new PointF();
 
     private final RectF tmpPosRct = new RectF();
-
-
 
 
     //public PDocPageResultsProvider searchCtx;
@@ -112,15 +112,21 @@ public class PDocSelection extends View {
     ArrayList<RectF> magSelBucket = new ArrayList<>();
 
     public void resetSel() {
-      //  CMN.Log("resetSel", pDocView.selPageSt, pDocView.selPageEd, pDocView.selStart, pDocView.selEnd);
+        //  CMN.Log("resetSel", pDocView.selPageSt, pDocView.selPageEd, pDocView.selStart, pDocView.selEnd);
+
         if (pDocView != null && pDocView.pdfFile != null && pDocView.hasSelection) {
+            long tid = pDocView.dragPinchManager.loadText();
+            if (pDocView.isNotCurrentPage(tid)) {
+                return;
+            }
+
             boolean b1 = pDocView.selPageEd < pDocView.selPageSt;
             if (b1) {
-                pDocView. selPageEd = pDocView.selPageSt;
+                pDocView.selPageEd = pDocView.selPageSt;
                 pDocView.selPageSt = pDocView.selPageEd;
             } else {
-                pDocView. selPageEd = pDocView.selPageEd;
-                pDocView. selPageSt = pDocView.selPageSt;
+                pDocView.selPageEd = pDocView.selPageEd;
+                pDocView.selPageSt = pDocView.selPageSt;
             }
             if (b1 || pDocView.selPageEd == pDocView.selPageSt && pDocView.selEnd < pDocView.selStart) {
                 pDocView.selStart = pDocView.selEnd;
@@ -140,7 +146,8 @@ public class PDocSelection extends View {
                 }
                 int selSt = i == 0 ? pDocView.selStart : 0;
                 int selEd = i == pageCount ? pDocView.selEnd : -1;
-               // PDocument.PDocPage page = pDocView.pdfFile.mPDocPages[selPageSt + i];
+                // PDocument.PDocPage page = pDocView.pdfFile.mPDocPages[selPageSt + i];
+
                 pDocView.dragPinchManager.getSelRects(rectPagePool, selSt, selEd);//+10
             }
             recalcHandles();
@@ -154,8 +161,11 @@ public class PDocSelection extends View {
     }
 
     public void recalcHandles() {
-        PDFView   page = pDocView;
-        page.dragPinchManager.prepareText();
+        PDFView page = pDocView;
+        long tid = page.dragPinchManager.prepareText();
+        if (pDocView.isNotCurrentPage(tid)) {
+            return;
+        }
         float mappedX = -pDocView.getCurrentXOffset() + pDocView.dragPinchManager.lastX;
         float mappedY = -pDocView.getCurrentYOffset() + pDocView.dragPinchManager.lastY;
         int pageIndex = pDocView.pdfFile.getPageAtOffset(pDocView.isSwipeVertical() ? mappedY : mappedX, pDocView.getZoom());
@@ -164,7 +174,7 @@ public class PDocSelection extends View {
         int ed = pDocView.selEnd;
         int dir = pDocView.selPageEd - pDocView.selPageSt;
         dir = (int) Math.signum(dir == 0 ? ed - st : dir);
-        if (dir != 0) {
+        if (dir != 0 && page.dragPinchManager.allText.containsKey(pageIndex)) {
             String atext = page.dragPinchManager.allText.get(pageIndex);
             int len = atext.length();
             if (st >= 0 && st < len) {
@@ -177,7 +187,7 @@ public class PDocSelection extends View {
             pDocView.lineHeightLeft = pDocView.handleLeftPos.height() / 2;
             page.getCharLoosePos(pDocView.handleLeftPos, st);
 
-            page = pDocView ;
+            page = pDocView;
             page.dragPinchManager.prepareText();
             atext = page.dragPinchManager.allText.get(pageIndex);
             len = atext.length();
@@ -189,7 +199,7 @@ public class PDocSelection extends View {
                     delta = 0;
                     ed += dir;
                 }
-            }
+            }//"RectF(373.0, 405.0, 556.0, 434.0)"
             //CMN.Log("getCharPos", page.allText.substring(ed+delta, ed+delta+1));
             page.getCharPos(pDocView.handleRightPos, ed + delta);
             pDocView.lineHeightRight = pDocView.handleRightPos.height() / 2;
@@ -205,6 +215,42 @@ public class PDocSelection extends View {
         RectF VR = tmpPosRct;
         Matrix matrix = pDocView.matrix;
 
+        if (pDocView.isSearching) {
+            // SearchRecord record =  pDocView.searchRecords.get(pDocView.getCurrentPage());
+            ArrayList<SearchRecord> searchRecordList = getSearchRecords();
+
+            for (SearchRecord record : searchRecordList) {
+                if (record != null) {
+                    pDocView.getAllMatchOnPage(record);
+                    int page = record.currentPage != -1 ? record.currentPage : pDocView.currentPage;
+                    ArrayList<SearchRecordItem> data = (ArrayList<SearchRecordItem>) record.data;
+                    for (int j = 0, len = data.size(); j < len; j++) {
+                        RectF[] rects = data.get(j).rects;
+                        if (rects != null) {
+                            for (RectF rI : rects) {
+                                pDocView.sourceToViewRectFFSearch(rI, VR, page);
+                                matrix.reset();
+                                int bmWidth = (int) rI.width();
+                                int bmHeight = (int) rI.height();
+                                pDocView.setMatrixArray(pDocView.srcArray, 0, 0, bmWidth, 0, bmWidth, bmHeight, 0, bmHeight);
+                                pDocView.setMatrixArray(pDocView.dstArray, VR.left, VR.top, VR.right, VR.top, VR.right, VR.bottom, VR.left, VR.bottom);
+
+                                matrix.setPolyToPoly(pDocView.srcArray, 0, pDocView.dstArray, 0, 4);
+                                matrix.postRotate(0, pDocView.getScreenWidth(), pDocView.getScreenHeight());
+
+                                canvas.save();
+                                canvas.concat(matrix);
+                                VR.set(0, 0, bmWidth, bmHeight);
+                                canvas.drawRect(VR, rectHighlightPaint);
+                                canvas.restore();
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+
         if (pDocView.hasSelection) {
             pDocView.sourceToViewRectFF(pDocView.handleLeftPos, VR);
             float left = VR.left + drawableDeltaW;
@@ -217,15 +263,15 @@ public class PDocSelection extends View {
             pDocView.handleRight.setBounds((int) left, (int) VR.bottom, (int) (left + drawableWidth), (int) (VR.bottom + drawableHeight));
             pDocView.handleRight.draw(canvas);
 
-         // canvas.drawRect(pDocView.handleRight.getBounds(), rectPaint);
-          pDocView.sourceToViewCoord(pDocView.sCursorPos, vCursorPos);
+            // canvas.drawRect(pDocView.handleRight.getBounds(), rectPaint);
+            pDocView.sourceToViewCoord(pDocView.sCursorPos, vCursorPos);
 
             for (int i = 0; i < rectPoolSize; i++) {
 
                 ArrayList<RectF> rectPage = rectPool.get(i);
-                for(RectF rI:rectPage) {
+                for (RectF rI : rectPage) {
                     pDocView.sourceToViewRectFF(rI, VR);
-                     matrix.reset();
+                    matrix.reset();
                     int bmWidth = (int) rI.width();
                     int bmHeight = (int) rI.height();
                     pDocView.setMatrixArray(pDocView.srcArray, 0, 0, bmWidth, 0, bmWidth, bmHeight, 0, bmHeight);
@@ -247,7 +293,37 @@ public class PDocSelection extends View {
         }
     }
 
+    /**
+     * To draw search result after and before current page
+     **/
+    private ArrayList<SearchRecord> getSearchRecords() {
+        ArrayList<SearchRecord> list = new ArrayList<>();
+        int currentPage = pDocView.getCurrentPage();
+        if (Util.indexExists(pDocView.getPageCount(), currentPage - 1)) {
+            int index = currentPage - 1;
 
+            if (pDocView.searchRecords.containsKey(index)) {
+                SearchRecord searchRecordPrev = pDocView.searchRecords.get(index);
+                if (searchRecordPrev != null)
+                    searchRecordPrev.currentPage = index;
+                list.add(searchRecordPrev);
+            }
+        }
+        list.add(pDocView.searchRecords.get(currentPage));
+
+        if (Util.indexExists(pDocView.getPageCount(), currentPage + 1)) {
+            int indexNext = currentPage + 1;
+            if (pDocView.searchRecords.containsKey(indexNext)) {
+                SearchRecord searchRecordNext = pDocView.searchRecords.get(indexNext);
+                if (searchRecordNext != null)
+                    searchRecordNext.currentPage = indexNext;
+                list.add(pDocView.searchRecords.get(indexNext));
+            }
+        }
+
+
+        return list;
+    }
 
 
 }

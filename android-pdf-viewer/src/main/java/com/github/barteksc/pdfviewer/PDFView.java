@@ -39,7 +39,6 @@ import android.os.Build;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -48,7 +47,6 @@ import android.view.MotionEvent;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.github.barteksc.pdfviewer.exception.PageRenderingException;
 import com.github.barteksc.pdfviewer.link.DefaultLinkHandler;
@@ -64,7 +62,8 @@ import com.github.barteksc.pdfviewer.listener.OnPageScrollListener;
 import com.github.barteksc.pdfviewer.listener.OnRenderListener;
 import com.github.barteksc.pdfviewer.listener.OnTapListener;
 import com.github.barteksc.pdfviewer.model.PagePart;
-import com.github.barteksc.pdfviewer.scroll.DefaultScrollHandle;
+import com.github.barteksc.pdfviewer.model.SearchRecord;
+import com.github.barteksc.pdfviewer.model.SearchRecordItem;
 import com.github.barteksc.pdfviewer.scroll.ScrollHandle;
 import com.github.barteksc.pdfviewer.source.AssetSource;
 import com.github.barteksc.pdfviewer.source.ByteArraySource;
@@ -85,8 +84,11 @@ import com.shockwave.pdfium.util.SizeF;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * It supports animations, zoom, cache, and swipe.
@@ -110,7 +112,7 @@ public class PDFView extends RelativeLayout {
     PointF sCursorPos = new PointF();
     final float[] srcArray = new float[8];
     final float[] dstArray = new float[8];
-
+    private PDocSearchTask task;
     float lineHeightLeft;
     float lineHeightRight;
     private static final String TAG = PDFView.class.getSimpleName();
@@ -120,6 +122,7 @@ public class PDFView extends RelativeLayout {
     public static final float DEFAULT_MID_SCALE = 1.75f;
     public static final float DEFAULT_MIN_SCALE = 1.0f;
     boolean hasSelection;
+    public boolean isSearching;
     public boolean startInDrag;
     int selPageSt = -1;
     int selPageEd;
@@ -137,6 +140,16 @@ public class PDFView extends RelativeLayout {
     private double cos = 1;//Math.cos(0);
     private double sin = 0;//Math.sin(0);
     float drawableScale = 1.f;
+    OnSelection onSelection;
+    public final HashMap<Integer, SearchRecord> searchRecords = new HashMap<>();
+
+    public void setIsSearching(boolean isSearching) {
+        this.isSearching = isSearching;
+    }
+
+    public void setOnSelection(OnSelection onSelection) {
+        this.onSelection = onSelection;
+    }
 
     public void setMatrixArray(float[] array, float f0, float f1, float f2, float f3, float f4, float f5, float f6, float f7) {
         array[0] = f0;
@@ -147,6 +160,11 @@ public class PDFView extends RelativeLayout {
         array[5] = f5;
         array[6] = f6;
         array[7] = f7;
+    }
+
+    public void notifyItemAdded(PDocSearchTask pDocSearchTask, ArrayList<SearchRecord> arr, SearchRecord schRecord, int i) {
+        searchRecords.put(i, schRecord);
+
     }
 
     /**
@@ -170,6 +188,10 @@ public class PDFView extends RelativeLayout {
     }
 
     private ScrollDir scrollDir = ScrollDir.NONE;
+
+    public boolean isNotCurrentPage(long tid) {
+        return (dragPinchManager.currentTextPtr != 0 && tid != dragPinchManager.currentTextPtr);
+    }
 
     public void redrawSel() {
         if (selectionPaintView != null) {
@@ -396,15 +418,49 @@ public class PDFView extends RelativeLayout {
     }
 
     public int getScreenWidth() {
-        int ret = getWidth();
+        int ret = 0;
         if (ret == 0 && dm != null) ret = dm.widthPixels;
         return ret;
     }
 
     public int getScreenHeight() {
-        int ret = getHeight();
+        int ret = 0;
         if (ret == 0 && dm != null) ret = dm.heightPixels;
         return ret;
+    }
+
+    public void setSearchResults(ArrayList<SearchRecord> arr, String key, int flag) {
+        //  adaptermy.setSearchResults(arr, key, flag);
+        //  currentViewer.selectionPaintView.searchCtx = adaptermy.getSearchProvider();
+    }
+
+    int lastSz = 0;
+
+    public void closeTask() {
+        if (task != null) {
+            task.abort();
+        }
+        task = null;
+    }
+
+    public void search(String text) {
+        searchRecords.clear();
+        setIsSearching(true);
+        if (task != null) {
+            closeTask();
+        }
+        task = new PDocSearchTask(this, text);
+        task.start();
+    }
+
+    public void startSearch(ArrayList<SearchRecord> arr, String key, int flag) {
+
+    }
+
+    public void endSearch(ArrayList<SearchRecord> arr) {
+
+        selectionPaintView.invalidate();
+        // searchHandler.endSearch(arr);
     }
 
     public void setSelectionAtPage(int pageIdx, int st, int ed) {
@@ -459,15 +515,13 @@ public class PDFView extends RelativeLayout {
 
         long pagePtr = pdfFile.pdfDocument.mNativePagesPtr.get(page);
 
-        SizeF size =  pdfFile.getPageSize(page);
-      //  SizeF size = pdfFile.SizeF size = pdfView.pdfFile.getPageSize(page);(page, getZoom());
-        if (scrollHandle instanceof DefaultScrollHandle) {
-            DefaultScrollHandle defultScrollHandle = (DefaultScrollHandle) scrollHandle;
-            pdfiumCore.nativeGetCharPos(pagePtr
-                    , 0
-                    , getLateralOffset()
-                    , (int) size.getWidth(), (int) size.getHeight(), pos, dragPinchManager.tid, index, true);
-        }
+        SizeF size = pdfFile.getPageSize(page);
+        //  SizeF size = pdfFile.SizeF size = pdfView.pdfFile.getPageSize(page);(page, getZoom());
+        pdfiumCore.nativeGetCharPos(pagePtr
+                , 0
+                , 0
+                , (int) size.getWidth(), (int) size.getHeight(), pos, dragPinchManager.loadText(), index, true);
+
     }
 
     public void getCharLoosePos(RectF pos, int index) {
@@ -477,14 +531,111 @@ public class PDFView extends RelativeLayout {
 
 
         long pagePtr = pdfFile.pdfDocument.mNativePagesPtr.get(page);
-        SizeF size =  pdfFile.getPageSize(page);
+        SizeF size = pdfFile.getPageSize(page);
         //   SizeF size = pdfFile.getScaledPageSize(page, getZoom());
         pdfiumCore.nativeGetMixedLooseCharPos(pagePtr
                 , 0
                 , getLateralOffset()
-                , (int) size.getWidth(), (int) size.getHeight(), pos, dragPinchManager.tid, index, true);
+                , (int) size.getWidth(), (int) size.getHeight(), pos, dragPinchManager.loadText(), index, true);
 
     }
+
+    public void getCharLoose(RectF pos, int index) {
+        int page = currentPage;
+
+
+        long pagePtr = pdfFile.pdfDocument.mNativePagesPtr.get(page);
+        SizeF size = pdfFile.getPageSize(page);
+        //   SizeF size = pdfFile.getScaledPageSize(page, getZoom());
+        pdfiumCore.nativeGetMixedLooseCharPos(pagePtr
+                , 0
+                , getLateralOffset()
+                , (int) size.getWidth(), (int) size.getHeight(), pos, dragPinchManager.loadText(), index, true);
+
+    }
+
+    public void getAllMatchOnPage(SearchRecord record) {
+        int page=record.currentPage != -1 ? record.currentPage : currentPage;
+        long tid = dragPinchManager.prepareText(page);
+        if (record.data == null && tid != -1) {
+            //CMN.rt();
+            ArrayList<SearchRecordItem> data = new ArrayList<>();
+            record.data = data;
+            long keyStr = task.getKeyStr();
+            if (keyStr != 0) {
+                long searchHandle = pdfiumCore.nativeFindTextPageStart(tid, keyStr, task.flag, record.findStart);
+                if (searchHandle != 0) {
+                    while (pdfiumCore.nativeFindTextPageNext(searchHandle)) {
+                        int st = pdfiumCore.nativeGetFindIdx(searchHandle);
+                        int ed = pdfiumCore.nativeGetFindLength(searchHandle);
+                        getRectsForRecordItem(data, st, ed,page);
+                    }
+                    pdfiumCore.nativeFindTextPageEnd(searchHandle);
+                }
+            }
+            //CMN.pt("getAllSearchedHighlightRects：");
+        }
+    }
+
+    public ArrayList<RectF> mergeLineRects(List<RectF> selRects, RectF box) {
+        RectF tmp = new RectF();
+        ArrayList<RectF> selLineRects = new ArrayList<>(selRects.size());
+        RectF currentLineRect = null;
+        for (RectF rI : selRects) {
+            //CMN.Log("RectF rI:selRects", rI);
+            if (currentLineRect != null && Math.abs((currentLineRect.top + currentLineRect.bottom) - (rI.top + rI.bottom)) < currentLineRect.bottom - currentLineRect.top) {
+                currentLineRect.left = Math.min(currentLineRect.left, rI.left);
+                currentLineRect.right = Math.max(currentLineRect.right, rI.right);
+                currentLineRect.top = Math.min(currentLineRect.top, rI.top);
+                currentLineRect.bottom = Math.max(currentLineRect.bottom, rI.bottom);
+            } else {
+                currentLineRect = new RectF();
+                currentLineRect.set(rI);
+                selLineRects.add(currentLineRect);
+                int cid = dragPinchManager.getCharIdxAt(rI.left + 1, rI.top + rI.height() / 2, 10);
+                if (cid > 0) {
+                    getCharLoose(tmp, cid);
+                    currentLineRect.left = Math.min(currentLineRect.left, tmp.left);
+                    currentLineRect.right = Math.max(currentLineRect.right, tmp.right);
+                    currentLineRect.top = Math.min(currentLineRect.top, tmp.top);
+                    currentLineRect.bottom = Math.max(currentLineRect.bottom, tmp.bottom);
+                }
+            }
+            if (box != null) {
+                box.left = Math.min(box.left, currentLineRect.left);
+                box.right = Math.max(box.right, currentLineRect.right);
+                box.top = Math.min(box.top, currentLineRect.top);
+                box.bottom = Math.max(box.bottom, currentLineRect.bottom);
+            }
+        }
+        return selLineRects;
+    }
+
+    private void getRectsForRecordItem(ArrayList<SearchRecordItem> data, int st, int ed, int page) {
+
+       // int page = currentPage;//pdfFile.getPageAtOffset(isSwipeVertical() ? mappedY : mappedX, getZoom());
+        long tid = pdfFile.pdfDocument.mNativeTextPtr.get(page);
+        long pid = pdfFile.pdfDocument.mNativePagesPtr.get(page);
+        SizeF size = pdfFile.getPageSize(page);
+        if (st >= 0 && ed > 0) {
+            int rectCount = pdfiumCore.nativeCountRects(tid, st, ed);
+            if (rectCount > 0) {
+                RectF[] rects = new RectF[rectCount];
+                for (int i = 0; i < rectCount; i++) {
+                    RectF rI = new RectF();
+                    pdfiumCore.nativeGetRect(pid
+                            , 0
+                            , 0
+                            , (int) size.getWidth(), (int) size.getHeight()
+                            , tid, rI, i);
+                    rects[i] = rI;
+                }
+                rects = Arrays.asList(rects).toArray(new RectF[0]);
+                data.add(new SearchRecordItem(st, ed, rects));
+            }
+        }
+    }
+
 
     public int getLateralOffset() {
         //if(size.getWidth()!=maxPageWidth) {
@@ -616,30 +767,65 @@ public class PDFView extends RelativeLayout {
         return pdfFile.getPagesCount();
     }
 
+
     public void setSwipeEnabled(boolean enableSwipe) {
         this.enableSwipe = enableSwipe;
+    }
+
+    void sourceToViewRectFFSearch(@NonNull RectF sRect, @NonNull RectF vTarget, int currentPage) {
+
+
+        int pageX = (int) pdfFile.getSecondaryPageOffset(currentPage, getZoom());
+        int pageY = (int) pdfFile.getPageOffset(currentPage, getZoom());
+        vTarget.set(
+                sRect.left * getZoom() + ((pageX)) + currentXOffset,
+                sRect.top * getZoom() + ((pageY)) + currentYOffset,
+                sRect.right * getZoom() + ((pageX)) + currentXOffset,
+                sRect.bottom * getZoom() + ((pageY)) + currentYOffset
+        );
     }
 
     void sourceToViewRectFF(@NonNull RectF sRect, @NonNull RectF vTarget) {
         float mappedX = -getCurrentXOffset() + dragPinchManager.lastX;
         float mappedY = -getCurrentYOffset() + dragPinchManager.lastY;
-        int page =  pdfFile.getPageAtOffset( isSwipeVertical() ? mappedY : mappedX, getZoom());
+        // Log.e("dragPinchManager",dragPinchManager.lastX+""+dragPinchManager.lastY);
+        // Log.e("getCurrentYOffset",(-getCurrentYOffset())+""+(-getCurrentXOffset()));
+        int page = -1;
+        if (pdfFile.pdfDocument != null && pdfFile.pdfDocument.mNativeTextPtr.containsValue(dragPinchManager.currentTextPtr)) {
 
+            for (Map.Entry<Integer, Long> entry : pdfFile.pdfDocument.mNativeTextPtr.entrySet()) {
+                Long value = entry.getValue();
+                if (value == dragPinchManager.currentTextPtr) {
+                    page = entry.getKey();
+                }
+            }
+        }
+        int curPage = pdfFile.getPageAtOffset(isSwipeVertical() ? mappedY : mappedX, getZoom());
+        if (page == -1)
+            page = curPage;
+        Log.e("page", page + "");
 
         int pageX = (int) pdfFile.getSecondaryPageOffset(page, getZoom());
         int pageY = (int) pdfFile.getPageOffset(page, getZoom());
-        /*vTarget.set(
-                Math.abs(sRect.left+currentXOffset +((pageX)* getZoom())),
-                Math.abs(sRect.top +currentYOffset+((pageY)* getZoom())),
-                Math.abs(sRect.right+currentXOffset +((pageX)* getZoom())),
-                Math.abs(sRect.bottom +currentYOffset+((pageY)))
-        );*/
         vTarget.set(
-                Math.abs(sRect.left* getZoom()+currentXOffset +((pageX) )),
-                Math.abs(sRect.top * getZoom()+currentYOffset+((pageY) )),
-                Math.abs(sRect.right* getZoom()+currentXOffset +((pageX) )),
-                Math.abs(sRect.bottom * getZoom()+currentYOffset+((pageY) ))
+                sRect.left * getZoom() + ((pageX)) + currentXOffset,
+                sRect.top * getZoom() + ((pageY)) + currentYOffset,
+                sRect.right * getZoom() + ((pageX)) + currentXOffset,
+                sRect.bottom * getZoom() + ((pageY)) + currentYOffset
         );
+    }
+
+    public SearchRecord findPageCached(String key, int pageIdx, int flag) {
+
+
+        long tid = dragPinchManager.loadText(pageIdx);
+        if (tid == -1) {
+            return null;
+        }
+        int foundIdx = pdfiumCore.nativeFindTextPage(tid, key, flag);
+        SearchRecord ret = foundIdx == -1 ? null : new SearchRecord(pageIdx, foundIdx);
+
+        return ret;
     }
 
     public void setNightMode(boolean nightMode) {
@@ -1083,6 +1269,7 @@ public class PDFView extends RelativeLayout {
 
         pagesLoader.loadPages();
         redraw();
+        redrawSel();
     }
 
     /**
@@ -1849,7 +2036,7 @@ public class PDFView extends RelativeLayout {
             return this;
         }
 
-        public Configurator pageFitPolicy(FitPolicy pageFitPolicy) {
+        public Configurator pageFitPolicy(FitPolicy pageFitPolFicy) {
             this.pageFitPolicy = pageFitPolicy;
             return this;
         }
@@ -1927,5 +2114,9 @@ public class PDFView extends RelativeLayout {
                 PDFView.this.load(documentSource, password);
             }
         }
+    }
+
+    public interface OnSelection {
+        void onSelection(boolean hasSelection, String text);
     }
 }

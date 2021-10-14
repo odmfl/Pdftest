@@ -11,6 +11,8 @@
 	tools:alpha="1"
 	tools:background="#8f8f8f"
 	>
+
+
     <com.github.barteksc.pdfviewer.PDFView
         android:id="@+id/pdfView"
         android:layout_width="match_parent"
@@ -20,5 +22,25 @@
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
 		/>
+	<LinearLayout
+		android:background="@drawable/default_scroll_handle_top"
+		android:id="@+id/search_controller"
+		android:layout_width="match_parent"
+		android:layout_height="50dp"
+		 android:gravity="center_vertical"
+		android:visibility="gone"
+		>
 
+		<android.support.v7.widget.AppCompatImageButton
+			android:id="@+id/prev"
+			android:src="@android:drawable/arrow_down_float"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content" />
+		<android.support.v7.widget.AppCompatImageButton
+			android:id="@+id/next"
+			android:src="@android:drawable/arrow_up_float"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content" />
+
+	</LinearLayout>
 </FrameLayout>

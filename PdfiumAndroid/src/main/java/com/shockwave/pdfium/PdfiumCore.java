@@ -23,10 +23,7 @@ public class PdfiumCore {
 
     static {
         try {
-            System.loadLibrary("c++_shared");
-            System.loadLibrary("modpng");
-            System.loadLibrary("modft2");
-            System.loadLibrary("modpdfium");
+            System.loadLibrary("pdfsdk");
             System.loadLibrary("jniPdfium");
         } catch (UnsatisfiedLinkError e) {
             Log.e(TAG, "Native libraries failed to load - " + e);
@@ -109,7 +106,15 @@ public class PdfiumCore {
     private native RectF nativeGetLinkRect(long linkPtr);
 
     public native int nativeGetCharPos(long pagePtr, int offsetY, int offsetX, int width, int height, RectF pt, long tid, int index, boolean loose);
-
+    public native long nativeFindTextPageStart(long textPtr, long keyStr, int flag, int startIdx);
+    public native boolean nativeFindTextPageNext(long searchPtr);
+    public native int nativeGetFindIdx(long searchPtr);
+    public native int nativeGetFindLength(long searchPtr);
+    public native void nativeFindTextPageEnd(long searchPtr);
+    public native int nativeCountRects(long textPtr, int st, int ed);
+    public native boolean nativeGetRect(long pagePtr, int offsetY, int offsetX, int width, int height, long textPtr, RectF rect, int idx);
+    public native int nativeFindTextPage(long pagePtr, String key, int flag);
+    public static native long nativeGetStringChars(String key);
     private native Point nativePageCoordsToDevice(long pagePtr, int startX, int startY, int sizeX,
                                                   int sizeY, int rotate, double pageX, double pageY);
 

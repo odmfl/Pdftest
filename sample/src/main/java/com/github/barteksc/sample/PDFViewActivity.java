@@ -15,7 +15,9 @@
  */
 package com.github.barteksc.sample;
 
+import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -26,8 +28,16 @@ import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.SearchView;
 import android.widget.Toast;
 
 import com.github.barteksc.pdfviewer.PDFView;
@@ -45,14 +55,18 @@ import org.androidannotations.annotations.NonConfigurationInstance;
 import org.androidannotations.annotations.OnActivityResult;
 import org.androidannotations.annotations.OptionsItem;
 import org.androidannotations.annotations.OptionsMenu;
+import org.androidannotations.annotations.OptionsMenuItem;
 import org.androidannotations.annotations.ViewById;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @EActivity(R.layout.activity_main)
-@OptionsMenu(R.menu.options)
-public class PDFViewActivity extends AppCompatActivity implements OnPageChangeListener, OnLoadCompleteListener,
-        OnPageErrorListener {
+
+public class PDFViewActivity extends AppCompatActivity implements OnPageChangeListener, OnLoadCompleteListener, SearchView.OnQueryTextListener
+        , OnPageErrorListener {
 
     private static final String TAG = PDFViewActivity.class.getSimpleName();
 
@@ -67,6 +81,13 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     @ViewById
     PDocSelection sv;
 
+    @ViewById
+    LinearLayout search_controller;
+    @ViewById
+    ImageButton prev;
+    @ViewById
+    ImageButton next;
+
     @NonConfigurationInstance
     Uri uri;
 
@@ -75,15 +96,15 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
     String pdfFileName;
 
+    int serchPage = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
 
     }
 
-    @OptionsItem(R.id.pickFile)
+
     void pickFile() {
         int permissionCheck = ContextCompat.checkSelfPermission(this,
                 READ_EXTERNAL_STORAGE);
@@ -101,6 +122,41 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         launchPicker();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.options, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.search);
+
+        SearchView searchView = (SearchView) searchItem.getActionView();
+
+        searchView.setOnQueryTextListener(this);
+
+        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                pdfView.setIsSearching(false);
+                serchPage = -1;
+                search_controller.setVisibility(View.GONE);
+                return false;
+            }
+        });
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int itemId_ = item.getItemId();
+        if (itemId_ == R.id.pickFile) {
+            pickFile();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
     void launchPicker() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("application/pdf");
@@ -112,8 +168,57 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         }
     }
 
+
+    public int getNext(List<Object> myList) {
+        int idx = myList.indexOf(serchPage);
+        if (idx < 0 || idx + 1 == myList.size()) return 0;
+        return (int) myList.get(idx + 1);
+    }
+
+    public int getPrevious(List<Object> myList) {
+        int idx = myList.indexOf(serchPage);
+        if (idx <= 0) return 0;
+        return (int) myList.get(idx - 1);
+    }
+
     @AfterViews
     void afterViews() {
+        prev.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (pdfView.isSearching) {
+
+
+                    List<Object> myList = Arrays.asList(pdfView.searchRecords.keySet().toArray());
+
+                    if (serchPage == -1) {
+                        serchPage = (int) myList.get(0);
+                    }
+
+                    int val = getPrevious(myList);
+                    pdfView.jumpTo(val);
+                    serchPage=val;
+                }
+            }
+        });
+        next.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (pdfView.isSearching) {
+                    List<Object> myList = Arrays.asList(pdfView.searchRecords.keySet().toArray());
+
+                    if (serchPage == -1) {
+                        serchPage = (int) myList.get(0);
+                    }
+                    int val = getNext(myList);
+
+                    pdfView.jumpTo(val);
+                    serchPage=val;
+
+                }
+
+            }
+        });
         pdfView.setSelectionPaintView(sv);
         pdfView.setBackgroundColor(Color.LTGRAY);
         if (uri != null) {
@@ -122,6 +227,21 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
             displayFromAsset(SAMPLE_FILE);
         }
         setTitle(pdfFileName);
+
+        pdfView.setOnSelection(new PDFView.OnSelection() {
+            @Override
+            public void onSelection(boolean hasSelection, String text) {
+                if (hasSelection) {
+                    setTitle("Select Text");
+                    setTitleColor(getResources().getColor(android.R.color.holo_blue_bright));
+                } else {
+                    setTitle(pdfFileName);
+                    setTitleColor(getResources().getColor(android.R.color.white));
+                }
+
+            }
+        });
+
     }
 
     private void displayFromAsset(String assetFileName) {
@@ -235,5 +355,20 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     @Override
     public void onPageError(int page, Throwable t) {
         Log.e(TAG, "Cannot load page " + page);
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String s) {
+        pdfView.search(s);
+        search_controller.setVisibility(View.VISIBLE);
+        Toast.makeText(PDFViewActivity.this, s, Toast.LENGTH_SHORT).show();
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String s) {
+
+
+        return false;
     }
 }

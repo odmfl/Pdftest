@@ -42,18 +42,18 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 
 # Add other prebuilt libraries
-add_library(modpdfium
+add_library(pdfsdk
         SHARED
         IMPORTED)
 
 set_target_properties( # Specifies the target library.
-        modpdfium
+        pdfsdk
 
         # Specifies the parameter you want to define.
         PROPERTIES IMPORTED_LOCATION
 
         # Provides the path to the library you want to import.
-        ${CMAKE_SOURCE_DIR}/src/main/jni/lib/${ANDROID_ABI}/libmodpdfium.so)
+        ${CMAKE_SOURCE_DIR}/src/main/jni/lib/${ANDROID_ABI}/libpdfsdk.so)
 
 #find_package( Threads )
 find_package(Threads REQUIRED)
@@ -85,9 +85,10 @@ find_library( # Defines the name of the path variable that stores the
 # You need to link static libraries against your shared native library.
 target_link_libraries(
         jniPdfium
-        modpdfium
+        pdfsdk
         Threads::Threads
         -ljnigraphics
         android
+        GLESv2
         ${log-lib}
 )
