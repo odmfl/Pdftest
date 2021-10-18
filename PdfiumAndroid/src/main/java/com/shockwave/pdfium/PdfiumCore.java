@@ -158,7 +158,7 @@ public class PdfiumCore {
      */
     public PdfiumCore(Context ctx) {
         mCurrentDpi = ctx.getResources().getDisplayMetrics().densityDpi;
-        Log.d(TAG, "Starting PdfiumAndroid " + BuildConfig.VERSION_NAME);
+        Log.d(TAG, "Starting PdfiumAndroid ");
     }
 
     /**

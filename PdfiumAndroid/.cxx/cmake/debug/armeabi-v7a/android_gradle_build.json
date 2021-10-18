@@ -1,0 +1,45 @@
+{
+  "stringTable": {
+    "0": "/Users/rajatverma/StudioProjects/doc-scanner_AND/AndroidPdfViewer/PdfiumAndroid/.cxx/cmake/debug/armeabi-v7a",
+    "1": "--target=armv7-none-linux-androideabi16 --gcc-toolchain=/Users/rajatverma/Library/Android/sdk/ndk/21.0.6113669/toolchains/llvm/prebuilt/darwin-x86_64 --sysroot=/Users/rajatverma/Library/Android/sdk/ndk/21.0.6113669/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -DjniPdfium_EXPORTS -I../../../../src/main/jni/include -I../../../../src/main/jni/include/utils -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -march=armv7-a -mthumb -Wformat -Werror=format-security -frtti -fexceptions -fsigned-char -O0 -fno-limit-debug-info -fPIC"
+  },
+  "buildFiles": [
+    "/Users/rajatverma/StudioProjects/doc-scanner_AND/AndroidPdfViewer/PdfiumAndroid/CMakeLists.txt",
+    "/Users/rajatverma/Library/Android/sdk/ndk/21.0.6113669/build/cmake/android.toolchain.cmake",
+    "/Users/rajatverma/Library/Android/sdk/ndk/21.0.6113669/build/cmake/platforms.cmake"
+  ],
+  "cleanCommands": [
+    "/Users/rajatverma/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/rajatverma/StudioProjects/doc-scanner_AND/AndroidPdfViewer/PdfiumAndroid/.cxx/cmake/debug/armeabi-v7a\" clean"
+  ],
+  "buildTargetsCommand": "/Users/rajatverma/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja  -C \"/Users/rajatverma/StudioProjects/doc-scanner_AND/AndroidPdfViewer/PdfiumAndroid/.cxx/cmake/debug/armeabi-v7a\" {LIST_OF_TARGETS_TO_BUILD}",
+  "libraries": {
+    "jniPdfium-Debug-armeabi-v7a": {
+      "buildCommand": "/Users/rajatverma/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/rajatverma/StudioProjects/doc-scanner_AND/AndroidPdfViewer/PdfiumAndroid/.cxx/cmake/debug/armeabi-v7a\" jniPdfium",
+      "buildType": "debug",
+      "toolchain": "928594573",
+      "abi": "armeabi-v7a",
+      "artifactName": "jniPdfium",
+      "files": [
+        {
+          "src": "/Users/rajatverma/StudioProjects/doc-scanner_AND/AndroidPdfViewer/PdfiumAndroid/src/main/jni/src/mainJNILib.cpp",
+          "flagsOrdinal": 1,
+          "workingDirectoryOrdinal": 0
+        }
+      ],
+      "headers": [],
+      "output": "/Users/rajatverma/StudioProjects/doc-scanner_AND/AndroidPdfViewer/PdfiumAndroid/build/intermediates/cmake/debug/obj/armeabi-v7a/libjniPdfium.so",
+      "runtimeFiles": [
+        "/Users/rajatverma/StudioProjects/doc-scanner_AND/AndroidPdfViewer/PdfiumAndroid/src/main/jni/lib/armeabi-v7a/libpdfsdk.so"
+      ]
+    }
+  },
+  "toolchains": {
+    "928594573": {
+      "cppCompilerExecutable": "/Users/rajatverma/Library/Android/sdk/ndk/21.0.6113669/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++"
+    }
+  },
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}

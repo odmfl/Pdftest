@@ -37,8 +37,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.HandlerThread;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -47,6 +45,9 @@ import android.view.MotionEvent;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.github.barteksc.pdfviewer.exception.PageRenderingException;
 import com.github.barteksc.pdfviewer.link.DefaultLinkHandler;
@@ -145,6 +146,7 @@ public class PDFView extends RelativeLayout {
 
     public void setIsSearching(boolean isSearching) {
         this.isSearching = isSearching;
+        redrawSel();
     }
 
     public void setOnSelection(OnSelection onSelection) {
@@ -182,8 +184,8 @@ public class PDFView extends RelativeLayout {
         selectionPaintView = sv;
         sv.pDocView = this;
         sv.resetSel();
-        sv.drawableWidth = handleLeft.getIntrinsicWidth() * drawableScale;
-        sv.drawableHeight = handleLeft.getIntrinsicHeight() * drawableScale;
+        sv.drawableWidth = Util.getDP(getContext(), (int) sv.drawableWidth) * drawableScale;
+        sv.drawableHeight = Util.getDP(getContext(), (int) sv.drawableHeight) * drawableScale;
         sv.drawableDeltaW = sv.drawableWidth / 4;
     }
 
@@ -204,7 +206,9 @@ public class PDFView extends RelativeLayout {
      */
     CacheManager cacheManager;
 
-    /** Animation manager manage all offset and zoom animation */
+    /**
+     * Animation manager manage all offset and zoom animation
+     */
     private AnimationManager animationManager;
 
     /**
@@ -233,13 +237,19 @@ public class PDFView extends RelativeLayout {
      */
     private float currentYOffset = 0;
 
-    /** The zoom level, always >= 1 */
+    /**
+     * The zoom level, always >= 1
+     */
     private float zoom = 1f;
 
-    /** True if the PDFView has been recycled */
+    /**
+     * True if the PDFView has been recycled
+     */
     private boolean recycled = true;
 
-    /** Current state of the view */
+    /**
+     * Current state of the view
+     */
     private State state = State.DEFAULT;
 
     /**
@@ -279,7 +289,9 @@ public class PDFView extends RelativeLayout {
 
     private int defaultPage = 0;
 
-    /** True if should scroll through pages vertically instead of horizontally */
+    /**
+     * True if should scroll through pages vertically instead of horizontally
+     */
     private boolean swipeVertical = true;
 
     private boolean enableSwipe = true;
@@ -323,7 +335,9 @@ public class PDFView extends RelativeLayout {
      */
     private boolean renderDuringScale = false;
 
-    /** Antialiasing and bitmap filtering */
+    /**
+     * Antialiasing and bitmap filtering
+     */
     private boolean enableAntialiasing = true;
     private PaintFlagsDrawFilter antialiasFilter =
             new PaintFlagsDrawFilter(0, Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
@@ -348,30 +362,34 @@ public class PDFView extends RelativeLayout {
      */
     private boolean autoSpacing = false;
 
-    /** Fling a single page at a time */
+    /**
+     * Fling a single page at a time
+     */
     private boolean pageFling = true;
 
-    /** Pages numbers used when calling onDrawAllListener */
+    /**
+     * Pages numbers used when calling onDrawAllListener
+     */
     private List<Integer> onDrawPagesNums = new ArrayList<>(10);
 
-    /** Holds info whether view has been added to layout and has width and height */
+    /**
+     * Holds info whether view has been added to layout and has width and height
+     */
     private boolean hasSize = false;
 
-    /** Holds last used Configurator that should be loaded when view has size */
+    /**
+     * Holds last used Configurator that should be loaded when view has size
+     */
     private Configurator waitingDocumentConfigurator;
 
     /**
      * Construct the initial view
      */
-    TextView text;
+
 
     public PDFView(Context context, AttributeSet set) {
         super(context, set);
-        text = new TextView(getContext());
 
-        text.setTextColor(Color.parseColor("#3F51B5"));
-        text.setText(getSelection());
-        addView(text);
         renderingHandlerThread = new HandlerThread("PDF renderer");
 
         if (isInEditMode()) {
@@ -401,6 +419,10 @@ public class PDFView extends RelativeLayout {
     }
 
     public void clearSelection() {
+        if (onSelection != null) {
+            onSelection.onSelection(false );
+        }
+        dragPinchManager.currentTextPtr = 0;
         hasSelection = false;
 
         redrawSel();
@@ -545,7 +567,7 @@ public class PDFView extends RelativeLayout {
     }
 
     public void getAllMatchOnPage(SearchRecord record) {
-        int page=record.currentPage != -1 ? record.currentPage : currentPage;
+        int page = record.currentPage != -1 ? record.currentPage : currentPage;
         long tid = dragPinchManager.prepareText(page);
         if (record.data == null && tid != -1) {
             //CMN.rt();
@@ -558,7 +580,7 @@ public class PDFView extends RelativeLayout {
                     while (pdfiumCore.nativeFindTextPageNext(searchHandle)) {
                         int st = pdfiumCore.nativeGetFindIdx(searchHandle);
                         int ed = pdfiumCore.nativeGetFindLength(searchHandle);
-                        getRectsForRecordItem(data, st, ed,page);
+                        getRectsForRecordItem(data, st, ed, page);
                     }
                     pdfiumCore.nativeFindTextPageEnd(searchHandle);
                 }
@@ -603,7 +625,7 @@ public class PDFView extends RelativeLayout {
 
     private void getRectsForRecordItem(ArrayList<SearchRecordItem> data, int st, int ed, int page) {
 
-       // int page = currentPage;//pdfFile.getPageAtOffset(isSwipeVertical() ? mappedY : mappedX, getZoom());
+        // int page = currentPage;//pdfFile.getPageAtOffset(isSwipeVertical() ? mappedY : mappedX, getZoom());
         long tid = pdfFile.pdfDocument.mNativeTextPtr.get(page);
         long pid = pdfFile.pdfDocument.mNativePagesPtr.get(page);
         SizeF size = pdfFile.getPageSize(page);
@@ -1088,35 +1110,35 @@ public class PDFView extends RelativeLayout {
         canvas.translate(-currentXOffset, -currentYOffset);
     }
 
-    public String getSelection() {
+    public String getSelection() throws Exception{
         if (selectionPaintView != null) {
             try {
                 if (hasSelection) {
                     int pageStart = selPageSt;
                     int pageCount = selPageEd - pageStart;
-                    /*if (pageCount == 0) {
+                    if (pageCount == 0) {
 
                         dragPinchManager.prepareText();
                         return dragPinchManager.allText.substring(selStart, selEnd);
-                    }*/
+                    }
                     StringBuilder sb = new StringBuilder();
                     int selCount = 0;
-                    for (int i = 0; i <= dragPinchManager.allText.size(); i++) {
+                    for (int i = 0; i <= pageCount; i++) {
 
                         dragPinchManager.prepareText();
-                        int len = dragPinchManager.allText.get(i).length();
+                        int len = dragPinchManager.allText.length();
                         selCount += i == 0 ? len - selStart : i == pageCount ? selEnd : len;
                     }
                     sb.ensureCapacity(selCount + 64);
-                    for (int i = 0; i <= dragPinchManager.allText.size(); i++) {
+                    for (int i = 0; i <= pageCount; i++) {
 
-                        sb.append(dragPinchManager.allText.get(i).substring(i == 0 ? selStart : 0, i == pageCount ? selEnd : dragPinchManager.allText.get(i).length()));
+                        sb.append(dragPinchManager.allText.substring(i == 0 ? selStart : 0, i == pageCount ? selEnd : dragPinchManager.allText.length()));
                     }
                     return sb.toString();
                 }
             } catch (Exception e) {
                 Log.e("get Selection Exception", "Exception", e);
-                e.printStackTrace();
+               throw  e;
             }
         }
         return null;
@@ -1182,7 +1204,9 @@ public class PDFView extends RelativeLayout {
         }
     }
 
-    /** Draw a given PagePart on the canvas */
+    /**
+     * Draw a given PagePart on the canvas
+     */
     private void drawPart(Canvas canvas, PagePart part) {
         // Can seem strange, but avoid lot of calls
         RectF pageRelativeBounds = part.getPageRelativeBounds();
@@ -1263,7 +1287,9 @@ public class PDFView extends RelativeLayout {
         redrawSel();
     }
 
-    /** Called when the PDF is loaded */
+    /**
+     * Called when the PDF is loaded
+     */
     void loadComplete(PdfFile pdfFile) {
         state = State.LOADED;
 
@@ -1795,7 +1821,9 @@ public class PDFView extends RelativeLayout {
         return renderDuringScale;
     }
 
-    /** Returns null if document is not loaded */
+    /**
+     * Returns null if document is not loaded
+     */
     public PdfDocument.Meta getDocumentMeta() {
         if (pdfFile == null) {
             return null;
@@ -1803,7 +1831,9 @@ public class PDFView extends RelativeLayout {
         return pdfFile.getMetaData();
     }
 
-    /** Will be empty until document is loaded */
+    /**
+     * Will be empty until document is loaded
+     */
     public List<PdfDocument.Bookmark> getTableOfContents() {
         if (pdfFile == null) {
             return Collections.emptyList();
@@ -1811,7 +1841,9 @@ public class PDFView extends RelativeLayout {
         return pdfFile.getBookmarks();
     }
 
-    /** Will be empty until document is loaded */
+    /**
+     * Will be empty until document is loaded
+     */
     public List<PdfDocument.Link> getLinks(int page) {
         if (pdfFile == null) {
             return Collections.emptyList();
@@ -1819,32 +1851,44 @@ public class PDFView extends RelativeLayout {
         return pdfFile.getPageLinks(page);
     }
 
-    /** Use an asset file as the pdf source */
+    /**
+     * Use an asset file as the pdf source
+     */
     public Configurator fromAsset(String assetName) {
         return new Configurator(new AssetSource(assetName));
     }
 
-    /** Use a file as the pdf source */
+    /**
+     * Use a file as the pdf source
+     */
     public Configurator fromFile(File file) {
         return new Configurator(new FileSource(file));
     }
 
-    /** Use URI as the pdf source, for use with content providers */
+    /**
+     * Use URI as the pdf source, for use with content providers
+     */
     public Configurator fromUri(Uri uri) {
         return new Configurator(new UriSource(uri));
     }
 
-    /** Use bytearray as the pdf source, documents is not saved */
+    /**
+     * Use bytearray as the pdf source, documents is not saved
+     */
     public Configurator fromBytes(byte[] bytes) {
         return new Configurator(new ByteArraySource(bytes));
     }
 
-    /** Use stream as the pdf source. Stream will be written to bytearray, because native code does not support Java Streams */
+    /**
+     * Use stream as the pdf source. Stream will be written to bytearray, because native code does not support Java Streams
+     */
     public Configurator fromStream(InputStream stream) {
         return new Configurator(new InputStreamSource(stream));
     }
 
-    /** Use custom source as pdf source */
+    /**
+     * Use custom source as pdf source
+     */
     public Configurator fromSource(DocumentSource docSource) {
         return new Configurator(docSource);
     }
@@ -2026,6 +2070,7 @@ public class PDFView extends RelativeLayout {
             this.spacingTop = spacingTop;
             return this;
         }
+
         public Configurator spacingBottom(int spacingBottom) {
             this.spacingBottom = spacingBottom;
             return this;
@@ -2089,11 +2134,12 @@ public class PDFView extends RelativeLayout {
             PDFView.this.setDefaultPage(defaultPage);
             PDFView.this.setSwipeVertical(!swipeHorizontal);
             PDFView.this.enableAnnotationRendering(annotationRendering);
-            PDFView.this.setScrollHandle(scrollHandle);
+
             PDFView.this.enableAntialiasing(antialiasing);
             PDFView.this.setSpacing(spacing);
             PDFView.this.setSpacingTop(spacingTop);
             PDFView.this.setSpacingBottom(spacingBottom);
+            PDFView.this.setScrollHandle(scrollHandle);
             PDFView.this.setAutoSpacing(autoSpacing);
             PDFView.this.setPageFitPolicy(pageFitPolicy);
             PDFView.this.setFitEachPage(fitEachPage);
@@ -2109,6 +2155,6 @@ public class PDFView extends RelativeLayout {
     }
 
     public interface OnSelection {
-        void onSelection(boolean hasSelection, String text);
+        void onSelection(boolean hasSelection );
     }
 }

@@ -12,10 +12,11 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
 
+
+import androidx.annotation.Nullable;
 
 import com.github.barteksc.pdfviewer.model.SearchRecord;
 import com.github.barteksc.pdfviewer.model.SearchRecordItem;
@@ -29,8 +30,8 @@ import java.util.ArrayList;
 public class PDocSelection extends View {
     public boolean supressRecalcInval;
     PDFView pDocView;
-    float drawableWidth = 128;
-    float drawableHeight = 128;
+    float drawableWidth = 20;
+    float drawableHeight = 20;
     float drawableDeltaW = drawableWidth / 4;
     Paint rectPaint;
     Paint rectFramePaint;
@@ -174,8 +175,8 @@ public class PDocSelection extends View {
         int ed = pDocView.selEnd;
         int dir = pDocView.selPageEd - pDocView.selPageSt;
         dir = (int) Math.signum(dir == 0 ? ed - st : dir);
-        if (dir != 0 && page.dragPinchManager.allText.containsKey(pageIndex)) {
-            String atext = page.dragPinchManager.allText.get(pageIndex);
+        if (dir != 0 ) {
+           String atext = page.dragPinchManager.allText;
             int len = atext.length();
             if (st >= 0 && st < len) {
                 char c;
@@ -189,7 +190,7 @@ public class PDocSelection extends View {
 
             page = pDocView;
             page.dragPinchManager.prepareText();
-            atext = page.dragPinchManager.allText.get(pageIndex);
+            atext = page.dragPinchManager.allText;
             len = atext.length();
             int delta = -1;
             if (ed >= 0 && ed < len) {

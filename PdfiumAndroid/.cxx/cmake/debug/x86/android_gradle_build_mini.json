@@ -1,0 +1,22 @@
+{
+  "buildFiles": [
+    "/Users/rajatverma/StudioProjects/doc-scanner_AND/AndroidPdfViewer/PdfiumAndroid/CMakeLists.txt",
+    "/Users/rajatverma/Library/Android/sdk/ndk/21.0.6113669/build/cmake/android.toolchain.cmake",
+    "/Users/rajatverma/Library/Android/sdk/ndk/21.0.6113669/build/cmake/platforms.cmake"
+  ],
+  "cleanCommands": [
+    "/Users/rajatverma/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/rajatverma/StudioProjects/doc-scanner_AND/AndroidPdfViewer/PdfiumAndroid/.cxx/cmake/debug/x86\" clean"
+  ],
+  "buildTargetsCommand": "/Users/rajatverma/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja  -C \"/Users/rajatverma/StudioProjects/doc-scanner_AND/AndroidPdfViewer/PdfiumAndroid/.cxx/cmake/debug/x86\" {LIST_OF_TARGETS_TO_BUILD}",
+  "libraries": {
+    "jniPdfium-Debug-x86": {
+      "artifactName": "jniPdfium",
+      "buildCommand": "/Users/rajatverma/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/rajatverma/StudioProjects/doc-scanner_AND/AndroidPdfViewer/PdfiumAndroid/.cxx/cmake/debug/x86\" jniPdfium",
+      "abi": "x86",
+      "output": "/Users/rajatverma/StudioProjects/doc-scanner_AND/AndroidPdfViewer/PdfiumAndroid/build/intermediates/cmake/debug/obj/x86/libjniPdfium.so",
+      "runtimeFiles": [
+        "/Users/rajatverma/StudioProjects/doc-scanner_AND/AndroidPdfViewer/PdfiumAndroid/src/main/jni/lib/x86/libpdfsdk.so"
+      ]
+    }
+  }
+}

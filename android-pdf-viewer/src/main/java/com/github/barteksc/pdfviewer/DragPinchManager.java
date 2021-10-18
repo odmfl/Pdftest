@@ -60,7 +60,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
     private AnimationManager animationManager;
 
     BreakIteratorHelper pageBreakIterator;
-    HashMap<Integer, String> allText = new HashMap<>();
+    String allText ;
     private GestureDetector gestureDetector;
     private ScaleGestureDetector scaleGestureDetector;
     public long currentTextPtr;
@@ -90,21 +90,23 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
 
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e) {
-        boolean onTapHandled = pdfView.callbacks.callOnTap(e);
 
-        if (wordTapped(e.getX(), e.getY(), 1.5f)) {
-            if (pdfView.onSelection != null) {
-                pdfView.onSelection.onSelection(true, pdfView.getSelection());
+        boolean onTapHandled=false;
+
+        if (pdfView.hasSelection) {
+            if (wordTapped(e.getX(), e.getY(), 1.5f)) {
+                if (pdfView.onSelection != null) {
+                    pdfView.onSelection.onSelection(true);
+                }
+                draggingHandle = pdfView.handleRight;
+                sCursorPosStart.set(pdfView.handleRightPos.right, pdfView.handleRightPos.bottom);
+            } else {
+
+
+                pdfView.clearSelection();
             }
-            draggingHandle = pdfView.handleRight;
-            sCursorPosStart.set(pdfView.handleRightPos.right, pdfView.handleRightPos.bottom);
-        } else {
-            if (pdfView.onSelection != null) {
-                pdfView.onSelection.onSelection(false, null);
-            }
-            currentTextPtr = 0;
-            pdfView.clearSelection();
-            pdfView.text.setText("");
+        }else{
+              onTapHandled = pdfView.callbacks.callOnTap(e);
         }
         boolean linkTapped = checkLinkTapped(e.getX(), e.getY());
         if (!onTapHandled && !linkTapped) {
@@ -261,7 +263,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
                 int ed = pageBreakIterator.following(charIdx);
                 int st = pageBreakIterator.previous();
                 try {
-                    ret = allText.get(page).substring(st, ed);
+                    ret = allText.substring(st, ed);
                     pdfView.setSelectionAtPage(pageIndex, st, ed);
                     Toast.makeText(pdfView.getContext(), String.valueOf(ret), Toast.LENGTH_SHORT).show();
                     return true;
@@ -300,7 +302,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
         rectPagePool.clear();
         if (tid != 0) {
             if (selEd == -1) {
-                selEd = allText.get(page).length();
+                selEd = allText.length();
             }
 
             if (selEd < selSt) {
@@ -370,12 +372,12 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
     public long prepareText(int page) {
         long tid = loadText(page);
         if (tid != -1) {
-            String text = pdfView.pdfiumCore.nativeGetText(tid);
-            allText.put(page, text);
+            allText = pdfView.pdfiumCore.nativeGetText(tid);
+
             if (pageBreakIterator == null) {
                 pageBreakIterator = new BreakIteratorHelper();
             }
-            pageBreakIterator.setText(allText.get(page));
+            pageBreakIterator.setText(allText);
         }
         return tid;
     }
@@ -496,6 +498,13 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
 
     @Override
     public void onLongPress(MotionEvent e) {
+        if (wordTapped(e.getX(), e.getY(), 1.5f)) {
+            if (pdfView.onSelection != null) {
+                pdfView.onSelection.onSelection(true );
+            }
+            draggingHandle = pdfView.handleRight;
+            sCursorPosStart.set(pdfView.handleRightPos.right, pdfView.handleRightPos.bottom);
+        }
         pdfView.callbacks.callOnLongPress(e);
     }
 
@@ -687,7 +696,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
             }
             pdfView.redrawSel();
             // Toast.makeText(pdfView.getContext(),   pdfView. getSelection(), Toast.LENGTH_SHORT).show();
-            pdfView.text.setText(pdfView.getSelection());
+            //   pdfView.text.setText(pdfView.getSelection());
             pdfView.selectionPaintView.supressRecalcInval = false;
         }
     }

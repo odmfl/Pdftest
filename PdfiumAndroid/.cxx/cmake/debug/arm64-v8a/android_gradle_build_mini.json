@@ -1,0 +1,22 @@
+{
+  "buildFiles": [
+    "/Users/rajatverma/StudioProjects/doc-scanner_AND/AndroidPdfViewer/PdfiumAndroid/CMakeLists.txt",
+    "/Users/rajatverma/Library/Android/sdk/ndk/21.0.6113669/build/cmake/android.toolchain.cmake",
+    "/Users/rajatverma/Library/Android/sdk/ndk/21.0.6113669/build/cmake/platforms.cmake"
+  ],
+  "cleanCommands": [
+    "/Users/rajatverma/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/rajatverma/StudioProjects/doc-scanner_AND/AndroidPdfViewer/PdfiumAndroid/.cxx/cmake/debug/arm64-v8a\" clean"
+  ],
+  "buildTargetsCommand": "/Users/rajatverma/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja  -C \"/Users/rajatverma/StudioProjects/doc-scanner_AND/AndroidPdfViewer/PdfiumAndroid/.cxx/cmake/debug/arm64-v8a\" {LIST_OF_TARGETS_TO_BUILD}",
+  "libraries": {
+    "jniPdfium-Debug-arm64-v8a": {
+      "artifactName": "jniPdfium",
+      "buildCommand": "/Users/rajatverma/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/rajatverma/StudioProjects/doc-scanner_AND/AndroidPdfViewer/PdfiumAndroid/.cxx/cmake/debug/arm64-v8a\" jniPdfium",
+      "abi": "arm64-v8a",
+      "output": "/Users/rajatverma/StudioProjects/doc-scanner_AND/AndroidPdfViewer/PdfiumAndroid/build/intermediates/cmake/debug/obj/arm64-v8a/libjniPdfium.so",
+      "runtimeFiles": [
+        "/Users/rajatverma/StudioProjects/doc-scanner_AND/AndroidPdfViewer/PdfiumAndroid/src/main/jni/lib/arm64-v8a/libpdfsdk.so"
+      ]
+    }
+  }
+}
