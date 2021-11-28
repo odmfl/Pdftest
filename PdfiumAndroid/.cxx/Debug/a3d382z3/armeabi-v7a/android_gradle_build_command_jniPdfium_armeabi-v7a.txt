@@ -1,0 +1,7 @@
+Executable : C:\Users\badon\AppData\Local\Android\Sdk\cmake\3.10.2.4988404\bin\ninja.exe
+arguments : 
+-C
+C:\Users\badon\StudioProjects\doc-scanner\AndroidPdfViewer\PdfiumAndroid\.cxx\Debug\a3d382z3\armeabi-v7a
+jniPdfium
+jvmArgs : 
+

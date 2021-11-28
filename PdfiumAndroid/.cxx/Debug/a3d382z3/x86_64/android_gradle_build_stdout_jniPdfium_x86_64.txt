@@ -1,0 +1,3 @@
+ninja: Entering directory `C:\Users\badon\StudioProjects\doc-scanner\AndroidPdfViewer\PdfiumAndroid\.cxx\Debug\a3d382z3\x86_64'
+[1/2] Building CXX object CMakeFiles/jniPdfium.dir/src/main/jni/src/mainJNILib.cpp.o
+[2/2] Linking CXX shared library ..\..\..\..\build\intermediates\cxx\Debug\a3d382z3\obj\x86_64\libjniPdfium.so

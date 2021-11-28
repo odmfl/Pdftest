@@ -1,0 +1,22 @@
+# ninja log v5
+0	14	0	clean	570fcc2835e62717
+1	15	0	clean	570fcc2835e62717
+1	1295	659708795	CMakeFiles/jniPdfium.dir/src/main/jni/src/mainJNILib.cpp.o	a866b898d8fdd9fa
+1303	1674	659708795	../../../../build/intermediates/cxx/Debug/a3d382z3/obj/x86/libjniPdfium.so	6ecc3b231fb2e2c3
+0	14	0	clean	570fcc2835e62717
+0	23	0	clean	570fcc2835e62717
+7	1536	659829104	CMakeFiles/jniPdfium.dir/src/main/jni/src/mainJNILib.cpp.o	a866b898d8fdd9fa
+1536	1977	659829105	../../../../build/intermediates/cxx/Debug/a3d382z3/obj/x86/libjniPdfium.so	6ecc3b231fb2e2c3
+0	12	0	clean	570fcc2835e62717
+4	1069	659829718	CMakeFiles/jniPdfium.dir/src/main/jni/src/mainJNILib.cpp.o	a866b898d8fdd9fa
+1069	1198	659829718	../../../../build/intermediates/cxx/Debug/a3d382z3/obj/x86/libjniPdfium.so	6ecc3b231fb2e2c3
+0	12	0	clean	570fcc2835e62717
+4	1067	659829921	CMakeFiles/jniPdfium.dir/src/main/jni/src/mainJNILib.cpp.o	a866b898d8fdd9fa
+1068	1195	659829921	../../../../build/intermediates/cxx/Debug/a3d382z3/obj/x86/libjniPdfium.so	6ecc3b231fb2e2c3
+0	14	0	clean	570fcc2835e62717
+1	17	0	clean	570fcc2835e62717
+4	1062	659831069	CMakeFiles/jniPdfium.dir/src/main/jni/src/mainJNILib.cpp.o	a866b898d8fdd9fa
+1062	1203	659831069	../../../../build/intermediates/cxx/Debug/a3d382z3/obj/x86/libjniPdfium.so	6ecc3b231fb2e2c3
+1	14	0	clean	570fcc2835e62717
+4	1064	659834018	CMakeFiles/jniPdfium.dir/src/main/jni/src/mainJNILib.cpp.o	a866b898d8fdd9fa
+1064	1208	659834018	../../../../build/intermediates/cxx/Debug/a3d382z3/obj/x86/libjniPdfium.so	6ecc3b231fb2e2c3
