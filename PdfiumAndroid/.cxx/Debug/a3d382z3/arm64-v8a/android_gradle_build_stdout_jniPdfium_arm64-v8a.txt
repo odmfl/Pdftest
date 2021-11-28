@@ -1,0 +1,2 @@
+ninja: Entering directory `C:\Users\badon\StudioProjects\doc-scanner\AndroidPdfViewer\PdfiumAndroid\.cxx\Debug\a3d382z3\arm64-v8a'
+ninja: no work to do.
