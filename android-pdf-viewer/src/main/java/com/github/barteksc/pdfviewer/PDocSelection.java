@@ -83,7 +83,7 @@ public class PDocSelection extends View {
         rectPaint.setColor(0x66109afe);
         //rectPaint.setColor(0xffffff00);
         rectHighlightPaint = new Paint();
-        rectHighlightPaint.setColor(0xffffff00);
+        rectHighlightPaint.setColor(getResources().getColor(R.color.heightlight_color));
         rectPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));
         rectHighlightPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));
         rectFramePaint = new Paint();
@@ -175,8 +175,8 @@ public class PDocSelection extends View {
         int ed = pDocView.selEnd;
         int dir = pDocView.selPageEd - pDocView.selPageSt;
         dir = (int) Math.signum(dir == 0 ? ed - st : dir);
-        if (dir != 0 ) {
-           String atext = page.dragPinchManager.allText;
+        if (dir != 0) {
+            String atext = page.dragPinchManager.allText;
             int len = atext.length();
             if (st >= 0 && st < len) {
                 char c;
