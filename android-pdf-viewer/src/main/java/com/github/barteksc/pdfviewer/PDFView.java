@@ -662,8 +662,8 @@ public class PDFView extends RelativeLayout {
         ColorFilter colorFilter = new PorterDuffColorFilter(0xaa309afe, PorterDuff.Mode.SRC_IN);
         handleLeft.setColorFilter(colorFilter);
         handleRight.setColorFilter(colorFilter);
-        handleLeft.setAlpha(200);
-        handleRight.setAlpha(200);
+        handleLeft.setAlpha(255);
+        handleRight.setAlpha(255);
         moveSlop = 1.6f;
     }
 

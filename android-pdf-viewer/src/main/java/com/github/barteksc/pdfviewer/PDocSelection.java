@@ -30,8 +30,8 @@ import java.util.ArrayList;
 public class PDocSelection extends View {
     public boolean supressRecalcInval;
     PDFView pDocView;
-    float drawableWidth = 20;
-    float drawableHeight = 20;
+    float drawableWidth = 60;
+    float drawableHeight = 30;
     float drawableDeltaW = drawableWidth / 4;
     Paint rectPaint;
     Paint rectFramePaint;
