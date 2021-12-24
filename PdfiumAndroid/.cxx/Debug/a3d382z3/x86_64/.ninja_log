@@ -50,3 +50,6 @@
 0	13	0	clean	570fcc2835e62717
 8	1583	661822558	CMakeFiles/jniPdfium.dir/src/main/jni/src/mainJNILib.cpp.o	a52fcbbabc840c2
 1583	2045	661822558	../../../../build/intermediates/cxx/Debug/a3d382z3/obj/x86_64/libjniPdfium.so	8ce5b3d11e7955ea
+0	13	0	clean	570fcc2835e62717
+19	1399	661864653	CMakeFiles/jniPdfium.dir/src/main/jni/src/mainJNILib.cpp.o	a52fcbbabc840c2
+1400	1786	661864654	../../../../build/intermediates/cxx/Debug/a3d382z3/obj/x86_64/libjniPdfium.so	8ce5b3d11e7955ea
