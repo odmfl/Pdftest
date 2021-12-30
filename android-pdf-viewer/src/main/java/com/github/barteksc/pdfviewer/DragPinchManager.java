@@ -60,7 +60,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
     private AnimationManager animationManager;
 
     BreakIteratorHelper pageBreakIterator;
-    String allText ;
+    String allText;
     private GestureDetector gestureDetector;
     private ScaleGestureDetector scaleGestureDetector;
     public long currentTextPtr;
@@ -91,7 +91,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e) {
 
-        boolean onTapHandled=false;
+        boolean onTapHandled = false;
 
         if (pdfView.hasSelection) {
             if (wordTapped(e.getX(), e.getY(), 1.5f)) {
@@ -105,8 +105,8 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
 
                 pdfView.clearSelection();
             }
-        }else{
-              onTapHandled = pdfView.callbacks.callOnTap(e);
+        } else {
+            onTapHandled = pdfView.callbacks.callOnTap(e);
         }
         boolean linkTapped = checkLinkTapped(e.getX(), e.getY());
         if (!onTapHandled && !linkTapped) {
@@ -473,6 +473,8 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
         return false;
     }
 
+    float scrollValue = 0;
+
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
         if (pdfView.startInDrag)
@@ -484,6 +486,19 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
         if (!scaling || pdfView.doRenderDuringScale()) {
             pdfView.loadPageByOffset();
         }
+
+        scrollValue = distanceY;
+//        scrollValue =  Math.abs(scrollValue);
+//        if (distanceY >= 0 && pdfView.getCurrentPage() == 0) {
+//            // code to hide
+//            if (pdfView.hideView != null)
+//                pdfView.hideView.setVisibility(View.GONE);
+//        }if (distanceY <= -10 && pdfView.getCurrentPage() == 0) {
+//            // code to show
+//            if (pdfView.hideView != null)
+//                pdfView.hideView.setVisibility(View.VISIBLE);
+//        }
+        Log.e("ScrollY", String.valueOf(distanceY));
         return true;
     }
 
@@ -493,14 +508,18 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
         if (!animationManager.isFlinging()) {
             pdfView.performPageSnap();
         }
-
+        if (scrollValue <= -10 && pdfView.getCurrentPage() == 0) {
+            // code to show
+            if (pdfView.hideView != null)
+                pdfView.hideView.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
     public void onLongPress(MotionEvent e) {
         if (wordTapped(e.getX(), e.getY(), 1.5f)) {
             if (pdfView.onSelection != null) {
-                pdfView.onSelection.onSelection(true );
+                pdfView.onSelection.onSelection(true);
             }
             draggingHandle = pdfView.handleRight;
             sCursorPosStart.set(pdfView.handleRightPos.right, pdfView.handleRightPos.bottom);

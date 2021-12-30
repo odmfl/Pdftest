@@ -42,6 +42,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -341,6 +342,8 @@ public class PDFView extends RelativeLayout {
     private boolean enableAntialiasing = true;
     private PaintFlagsDrawFilter antialiasFilter =
             new PaintFlagsDrawFilter(0, Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+
+    public View hideView = null;
 
     /**
      * Spacing between pages, in px
@@ -1777,6 +1780,10 @@ public class PDFView extends RelativeLayout {
         return pageFling;
     }
 
+    private void setOnScrollHideView(View hideView){
+        this.hideView = hideView;
+    }
+
     private void setSpacing(int spacingDp) {
         this.spacingPx = Util.getDP(getContext(), spacingDp);
     }
@@ -1957,6 +1964,8 @@ public class PDFView extends RelativeLayout {
 
         private boolean nightMode = false;
 
+        private View hideView = null;
+
         private Configurator(DocumentSource documentSource) {
             this.documentSource = documentSource;
         }
@@ -2061,6 +2070,11 @@ public class PDFView extends RelativeLayout {
             return this;
         }
 
+        public Configurator onScrollingHideView(View view) {
+            this.hideView = view;
+            return this;
+        }
+
         public Configurator spacing(int spacing) {
             this.spacing = spacing;
             return this;
@@ -2145,6 +2159,7 @@ public class PDFView extends RelativeLayout {
             PDFView.this.setFitEachPage(fitEachPage);
             PDFView.this.setPageSnap(pageSnap);
             PDFView.this.setPageFling(pageFling);
+            PDFView.this.setOnScrollHideView(hideView);
 
             if (pageNumbers != null) {
                 PDFView.this.load(documentSource, password, pageNumbers);
