@@ -90,21 +90,18 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
 
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e) {
-
         boolean onTapHandled = false;
 
         if (pdfView.hasSelection) {
-            if (wordTapped(e.getX(), e.getY(), 1.5f)) {
-                if (pdfView.onSelection != null) {
-                    pdfView.onSelection.onSelection(true);
-                }
-                draggingHandle = pdfView.handleRight;
-                sCursorPosStart.set(pdfView.handleRightPos.right, pdfView.handleRightPos.bottom);
-            } else {
-
-
-                pdfView.clearSelection();
-            }
+            pdfView.clearSelection();
+//            if (wordTapped(e.getX(), e.getY(), 1.5f)) {
+//                if (pdfView.onSelection != null) {
+//                    pdfView.onSelection.onSelection(true);
+//                }
+//                draggingHandle = pdfView.handleRight;
+//                sCursorPosStart.set(pdfView.handleRightPos.right, pdfView.handleRightPos.bottom);
+//            } else {
+//            }
         } else {
             onTapHandled = pdfView.callbacks.callOnTap(e);
         }
@@ -265,7 +262,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
                 try {
                     ret = allText.substring(st, ed);
                     pdfView.setSelectionAtPage(pageIndex, st, ed);
-                    Toast.makeText(pdfView.getContext(), String.valueOf(ret), Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(pdfView.getContext(), String.valueOf(ret), Toast.LENGTH_SHORT).show();
                     return true;
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -517,6 +514,9 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
 
     @Override
     public void onLongPress(MotionEvent e) {
+        if(pdfView.hasSelection){
+            pdfView.clearSelection();
+        }
         if (wordTapped(e.getX(), e.getY(), 1.5f)) {
             if (pdfView.onSelection != null) {
                 pdfView.onSelection.onSelection(true);
