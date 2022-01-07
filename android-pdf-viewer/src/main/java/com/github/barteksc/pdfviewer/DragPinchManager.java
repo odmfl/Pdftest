@@ -518,6 +518,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
             pdfView.clearSelection();
         }
         if (wordTapped(e.getX(), e.getY(), 1.5f)) {
+            pdfView.hasSelection = true;
             if (pdfView.onSelection != null) {
                 pdfView.onSelection.onSelection(true);
             }
