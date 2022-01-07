@@ -84,3 +84,5 @@
 6	1642	663182855	CMakeFiles/jniPdfium.dir/src/main/jni/src/mainJNILib.cpp.o	91399d4e6cf914d7
 1643	2011	663182856	../../../../build/intermediates/cxx/Debug/a3d382z3/obj/arm64-v8a/libjniPdfium.so	37c45d0bcef1f3e6
 0	19	0	clean	570fcc2835e62717
+13	4021	663233860	CMakeFiles/jniPdfium.dir/src/main/jni/src/mainJNILib.cpp.o	91399d4e6cf914d7
+4022	4975	663233861	../../../../build/intermediates/cxx/Debug/a3d382z3/obj/arm64-v8a/libjniPdfium.so	37c45d0bcef1f3e6
