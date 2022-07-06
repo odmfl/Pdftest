@@ -121,33 +121,35 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
     }
 
     public int getCharIdxAtPos(float x, float y, int tolFactor) {
-        PdfFile pdfFile = pdfView.pdfFile;
-        if (pdfFile == null) {
-            return -1;
-        }
+        try {
+            PdfFile pdfFile = pdfView.pdfFile;
+            if (pdfFile == null) {
+                return -1;
+            }
 
-        float mappedX = -pdfView.getCurrentXOffset() + x;
-        float mappedY = -pdfView.getCurrentYOffset() + y;
-        int page = pdfFile.getPageAtOffset(pdfView.isSwipeVertical() ? mappedY : mappedX, pdfView.getZoom());
-        SizeF pageSize = pdfFile.getScaledPageSize(page, pdfView.getZoom());
-
-
-        int pageIndex = pdfFile.documentPage(page);
-        long pagePtr = pdfFile.pdfDocument.mNativePagesPtr.get(pageIndex);
-        Log.e("pageIndex", String.valueOf(pageIndex));
-        long tid = prepareText();
-        if (pdfView.isNotCurrentPage(tid)) {
-            return -1;
-        }
-        if (tid != 0) {
-            //int charIdx = pdfiumCore.nativeGetCharIndexAtPos(tid, posX, posY, 10.0, 10.0);
-            int pageX = (int) pdfFile.getSecondaryPageOffset(page, pdfView.getZoom());
-            int pageY = (int) pdfFile.getPageOffset(page, pdfView.getZoom());
-            return pdfFile.pdfiumCore.nativeGetCharIndexAtCoord(pagePtr, pageSize.getWidth(), pageSize.getHeight(), tid
-                    , Math.abs(mappedX - pageX), Math.abs(mappedY - pageY), 10.0 * tolFactor, 10.0 * tolFactor);
+            float mappedX = -pdfView.getCurrentXOffset() + x;
+            float mappedY = -pdfView.getCurrentYOffset() + y;
+            int page = pdfFile.getPageAtOffset(pdfView.isSwipeVertical() ? mappedY : mappedX, pdfView.getZoom());
+            SizeF pageSize = pdfFile.getScaledPageSize(page, pdfView.getZoom());
 
 
-        }
+            int pageIndex = pdfFile.documentPage(page);
+
+            long pagePtr = pdfFile.pdfDocument.mNativePagesPtr.get(pageIndex);//if it will produce nullPointerException catch will return -1 ...
+            Log.e("pageIndex", String.valueOf(pageIndex));
+            long tid = prepareText();
+            if (pdfView.isNotCurrentPage(tid)) {
+                return -1;
+            }
+            if (tid != 0) {
+                //int charIdx = pdfiumCore.nativeGetCharIndexAtPos(tid, posX, posY, 10.0, 10.0);
+                int pageX = (int) pdfFile.getSecondaryPageOffset(page, pdfView.getZoom());
+                int pageY = (int) pdfFile.getPageOffset(page, pdfView.getZoom());
+                return pdfFile.pdfiumCore.nativeGetCharIndexAtCoord(pagePtr, pageSize.getWidth(), pageSize.getHeight(), tid
+                        , Math.abs(mappedX - pageX), Math.abs(mappedY - pageY), 10.0 * tolFactor, 10.0 * tolFactor);
+
+
+            }
 
 
 
@@ -175,6 +177,9 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
                     ,  curX , curY , 10, 10);
 
         }*/
+        }catch (Exception e){
+            return -1;
+        }
         return -1;
     }
 
@@ -363,6 +368,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
     public long prepareText() {
         float mappedX = -pdfView.getCurrentXOffset() + lastX;
         float mappedY = -pdfView.getCurrentYOffset() + lastY;
+        if (pdfView.pdfFile == null) return 0L;
         int page = pdfView.pdfFile.getPageAtOffset(pdfView.isSwipeVertical() ? mappedY : mappedX, pdfView.getZoom());
         return prepareText(page);
 
@@ -393,23 +399,28 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
     }
 
     public Long loadText(int page) {
-        synchronized (lock) {
-            if (!pdfView.pdfFile.pdfDocument.hasPage(page)) {
-                try {
-                    pdfView.pdfFile.openPage(page);
-                } catch (PageRenderingException e) {
-                    e.printStackTrace();
+        try {
+            if (pdfView.pdfFile == null) return 0L;
+            synchronized (lock) {
+                if (!pdfView.pdfFile.pdfDocument.hasPage(page)) {
+                    try {
+                        pdfView.pdfFile.openPage(page);
+                    } catch (PageRenderingException e) {
+                        e.printStackTrace();
+                    }
+
+
                 }
-
-
+                long pagePtr = pdfView.pdfFile.pdfDocument.mNativePagesPtr.get(page);//if anyhow, it will produce null pointer exception ...catch statement will return 0 instead of crash
+                if (!pdfView.pdfFile.pdfDocument.hasText(page)) {
+                    long openTextPtr = pdfView.pdfiumCore.openText(pagePtr);
+                    pdfView.pdfFile.pdfDocument.mNativeTextPtr.put(page, openTextPtr);
+                }
             }
-            long pagePtr = pdfView.pdfFile.pdfDocument.mNativePagesPtr.get(page);
-            if (!pdfView.pdfFile.pdfDocument.hasText(page)) {
-                long openTextPtr = pdfView.pdfiumCore.openText(pagePtr);
-                pdfView.pdfFile.pdfDocument.mNativeTextPtr.put(page, openTextPtr);
-            }
+            return pdfView.pdfFile.pdfDocument.mNativeTextPtr.get(page);
+        }catch (Exception e){
+            return 0L;
         }
-        return pdfView.pdfFile.pdfDocument.mNativeTextPtr.get(page);
     }
 
     private void startPageFling(MotionEvent downEvent, MotionEvent ev, float velocityX, float velocityY) {
