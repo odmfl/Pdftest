@@ -31,6 +31,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 33
     }
+    namespace 'com.github.barteksc.pdfviewer'
 
 }
 
