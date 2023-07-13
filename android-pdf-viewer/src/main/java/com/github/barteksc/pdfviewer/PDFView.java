@@ -423,7 +423,7 @@ public class PDFView extends RelativeLayout {
 
     public void clearSelection() {
         if (onSelection != null) {
-            onSelection.onSelection(false );
+            onSelection.onSelection(false);
         }
         dragPinchManager.currentTextPtr = 0;
         hasSelection = false;
@@ -1113,16 +1113,18 @@ public class PDFView extends RelativeLayout {
         canvas.translate(-currentXOffset, -currentYOffset);
     }
 
-    public String getSelection() throws Exception{
+    public String getSelection() throws Exception {
         if (selectionPaintView != null) {
             try {
                 if (hasSelection) {
                     int pageStart = selPageSt;
                     int pageCount = selPageEd - pageStart;
                     if (pageCount == 0) {
-
                         dragPinchManager.prepareText();
-                        return dragPinchManager.allText.substring(selStart, selEnd);
+                        int newSelEnd = selEnd;
+                        if (selEnd > dragPinchManager.allText.length())
+                            newSelEnd = dragPinchManager.allText.length();
+                        return dragPinchManager.allText.substring(selStart, newSelEnd);
                     }
                     StringBuilder sb = new StringBuilder();
                     int selCount = 0;
@@ -1141,7 +1143,7 @@ public class PDFView extends RelativeLayout {
                 }
             } catch (Exception e) {
                 Log.e("get Selection Exception", "Exception", e);
-               throw  e;
+                throw e;
             }
         }
         return null;
@@ -1298,6 +1300,10 @@ public class PDFView extends RelativeLayout {
 
         this.pdfFile = pdfFile;
 
+        //Crashlitics null pointer exception bug fix. not able repeat on device.
+        if (renderingHandlerThread == null) {
+            renderingHandlerThread = new HandlerThread("PDF renderer");
+        }
         if (!renderingHandlerThread.isAlive()) {
             renderingHandlerThread.start();
         }
@@ -1780,7 +1786,7 @@ public class PDFView extends RelativeLayout {
         return pageFling;
     }
 
-    private void setOnScrollHideView(View hideView){
+    private void setOnScrollHideView(View hideView) {
         this.hideView = hideView;
     }
 
@@ -2170,6 +2176,6 @@ public class PDFView extends RelativeLayout {
     }
 
     public interface OnSelection {
-        void onSelection(boolean hasSelection );
+        void onSelection(boolean hasSelection);
     }
 }
