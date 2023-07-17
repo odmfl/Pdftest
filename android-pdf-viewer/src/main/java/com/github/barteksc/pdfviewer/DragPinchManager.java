@@ -105,6 +105,9 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
         } else {
             onTapHandled = pdfView.callbacks.callOnTap(e);
         }
+        if(pdfView.pdfFile == null){
+            return true;
+        }
         boolean linkTapped = checkLinkTapped(e.getX(), e.getY());
         if (!onTapHandled && !linkTapped) {
             ScrollHandle ps = pdfView.getScrollHandle();
