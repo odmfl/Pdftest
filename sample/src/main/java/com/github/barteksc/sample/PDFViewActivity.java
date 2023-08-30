@@ -15,9 +15,8 @@
  */
 package com.github.barteksc.sample;
 
-import android.app.SearchManager;
+import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -25,14 +24,8 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.view.MenuItemCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
@@ -46,23 +39,23 @@ import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener;
 import com.github.barteksc.pdfviewer.listener.OnPageChangeListener;
 import com.github.barteksc.pdfviewer.listener.OnPageErrorListener;
 import com.github.barteksc.pdfviewer.scroll.DefaultScrollHandle;
-import com.github.barteksc.pdfviewer.util.FitPolicy;
 import com.shockwave.pdfium.PdfDocument;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.NonConfigurationInstance;
 import org.androidannotations.annotations.OnActivityResult;
-import org.androidannotations.annotations.OptionsItem;
-import org.androidannotations.annotations.OptionsMenu;
-import org.androidannotations.annotations.OptionsMenuItem;
 import org.androidannotations.annotations.ViewById;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+@SuppressLint("NonConstantResourceId")
 @EActivity(R.layout.activity_main)
 
 public class PDFViewActivity extends AppCompatActivity implements OnPageChangeListener, OnLoadCompleteListener, SearchView.OnQueryTextListener
@@ -197,7 +190,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
                     int val = getPrevious(myList);
                     pdfView.jumpTo(val);
-                    serchPage=val;
+                    serchPage = val;
                 }
             }
         });
@@ -213,7 +206,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                     int val = getNext(myList);
 
                     pdfView.jumpTo(val);
-                    serchPage=val;
+                    serchPage = val;
 
                 }
 
@@ -230,7 +223,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
         pdfView.setOnSelection(new PDFView.OnSelection() {
             @Override
-            public void onSelection(boolean hasSelection, String text) {
+            public void onSelection(boolean hasSelection) {
                 if (hasSelection) {
                     setTitle("Select Text");
                     setTitleColor(getResources().getColor(android.R.color.holo_blue_bright));
@@ -238,7 +231,6 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                     setTitle(pdfFileName);
                     setTitleColor(getResources().getColor(android.R.color.white));
                 }
-
             }
         });
 
@@ -297,14 +289,9 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     public String getFileName(Uri uri) {
         String result = null;
         if (uri.getScheme().equals("content")) {
-            Cursor cursor = getContentResolver().query(uri, null, null, null, null);
-            try {
+            try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
                 if (cursor != null && cursor.moveToFirst()) {
-                    result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
-                }
-            } finally {
-                if (cursor != null) {
-                    cursor.close();
+                    result = cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME));
                 }
             }
         }
@@ -351,6 +338,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[],
                                            @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_CODE) {
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {

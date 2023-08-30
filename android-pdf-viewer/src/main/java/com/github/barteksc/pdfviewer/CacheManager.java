@@ -19,6 +19,8 @@ import android.graphics.RectF;
 
 import com.github.barteksc.pdfviewer.model.PagePart;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -28,7 +30,6 @@ import java.util.PriorityQueue;
 import static com.github.barteksc.pdfviewer.util.Constants.Cache.CACHE_SIZE;
 import static com.github.barteksc.pdfviewer.util.Constants.Cache.THUMBNAILS_CACHE_SIZE;
 
-import androidx.annotation.Nullable;
 
 class CacheManager {
 

@@ -41,14 +41,9 @@ import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.github.barteksc.pdfviewer.exception.PageRenderingException;
 import com.github.barteksc.pdfviewer.link.DefaultLinkHandler;
@@ -82,6 +77,8 @@ import com.shockwave.pdfium.PdfDocument;
 import com.shockwave.pdfium.PdfiumCore;
 import com.shockwave.pdfium.util.Size;
 import com.shockwave.pdfium.util.SizeF;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.InputStream;
@@ -488,13 +485,12 @@ public class PDFView extends RelativeLayout {
     }
 
 
-    @Nullable
-    public final PointF sourceToViewCoord(PointF sxy, @NonNull PointF vTarget) {
-        return sourceToViewCoord(sxy.x, sxy.y, vTarget);
+    public final void sourceToViewCoord(PointF sxy, @NotNull PointF vTarget) {
+        sourceToViewCoord(sxy.x, sxy.y, vTarget);
     }
 
 
-    public final PointF sourceToViewCoord(float sx, float sy, @NonNull PointF vTarget) {
+    public final void sourceToViewCoord(float sx, float sy, @NotNull PointF vTarget) {
         float xPreRotate = sourceToViewX(sx);
         float yPreRotate = sourceToViewY(sy);
         vTarget.set(xPreRotate, yPreRotate);
@@ -510,7 +506,6 @@ public class PDFView extends RelativeLayout {
             vTarget.y = (float) (xPreRotate * sin + yPreRotate * cos) + vCenterY;
         }
 */
-        return vTarget;
     }
 
     private float sourceToViewX(float sx) {
@@ -790,7 +785,7 @@ public class PDFView extends RelativeLayout {
         this.enableSwipe = enableSwipe;
     }
 
-    void sourceToViewRectFFSearch(@NonNull RectF sRect, @NonNull RectF vTarget, int currentPage) {
+    void sourceToViewRectFFSearch(@NotNull RectF sRect, @NotNull RectF vTarget, int currentPage) {
 
 
         int pageX = (int) pdfFile.getSecondaryPageOffset(currentPage, getZoom());
@@ -803,7 +798,7 @@ public class PDFView extends RelativeLayout {
         );
     }
 
-    void sourceToViewRectFF(@NonNull RectF sRect, @NonNull RectF vTarget) {
+    void sourceToViewRectFF(@NotNull RectF sRect, @NotNull RectF vTarget) {
         float mappedX = -getCurrentXOffset() + dragPinchManager.lastX;
         float mappedY = -getCurrentYOffset() + dragPinchManager.lastY;
         // Log.e("dragPinchManager",dragPinchManager.lastX+""+dragPinchManager.lastY);
@@ -835,15 +830,13 @@ public class PDFView extends RelativeLayout {
 
     public SearchRecord findPageCached(String key, int pageIdx, int flag) {
 
-
         long tid = dragPinchManager.loadText(pageIdx);
         if (tid == -1) {
             return null;
         }
         int foundIdx = pdfiumCore.nativeFindTextPage(tid, key, flag);
-        SearchRecord ret = foundIdx == -1 ? null : new SearchRecord(pageIdx, foundIdx);
 
-        return ret;
+        return foundIdx == -1 ? null : new SearchRecord(pageIdx, foundIdx);
     }
 
     public void setNightMode(boolean nightMode) {

@@ -17,11 +17,11 @@ import android.util.Log;
 import android.view.View;
 
 
-import androidx.annotation.Nullable;
-
 import com.github.barteksc.pdfviewer.model.SearchRecord;
 import com.github.barteksc.pdfviewer.model.SearchRecordItem;
 import com.github.barteksc.pdfviewer.util.Util;
+
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
