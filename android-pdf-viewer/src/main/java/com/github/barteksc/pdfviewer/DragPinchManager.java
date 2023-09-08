@@ -23,7 +23,6 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
-import android.widget.Toast;
 
 import com.github.barteksc.pdfviewer.exception.PageRenderingException;
 import com.github.barteksc.pdfviewer.model.LinkTapEvent;
@@ -34,7 +33,6 @@ import com.shockwave.pdfium.util.Size;
 import com.shockwave.pdfium.util.SizeF;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import static com.github.barteksc.pdfviewer.util.Constants.Pinch.MAXIMUM_ZOOM;
 import static com.github.barteksc.pdfviewer.util.Constants.Pinch.MINIMUM_ZOOM;
@@ -67,6 +65,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
     private boolean scrolling = false;
     private boolean scaling = false;
     private boolean enabled = false;
+    private boolean isUserTouched = false;
 
     DragPinchManager(PDFView pdfView, AnimationManager animationManager) {
         this.pdfView = pdfView;
@@ -88,6 +87,10 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
         gestureDetector.setIsLongpressEnabled(false);
     }
 
+    public boolean isUserTouched() {
+        return isUserTouched;
+    }
+
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e) {
         boolean onTapHandled = false;
@@ -105,7 +108,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
         } else {
             onTapHandled = pdfView.callbacks.callOnTap(e);
         }
-        if(pdfView.pdfFile == null){
+        if (pdfView.pdfFile == null) {
             return true;
         }
         boolean linkTapped = checkLinkTapped(e.getX(), e.getY());
@@ -180,7 +183,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
                     ,  curX , curY , 10, 10);
 
         }*/
-        }catch (Exception e){
+        } catch (Exception e) {
             return -1;
         }
         return -1;
@@ -421,7 +424,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
                 }
             }
             return pdfView.pdfFile.pdfDocument.mNativeTextPtr.get(page);
-        }catch (Exception e){
+        } catch (Exception e) {
             return 0L;
         }
     }
@@ -490,10 +493,10 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
 
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-        if(pdfView.startInDrag){
+        if (pdfView.startInDrag) {
             if (pdfView.hideView != null)
                 pdfView.hideView.setVisibility(View.GONE);
-        }else{
+        } else {
             if (pdfView.hideView != null)
                 pdfView.hideView.setVisibility(View.VISIBLE);
         }
@@ -656,6 +659,8 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
         lastY = event.getY();
         pdfView.redrawSel();
         if (event.getAction() == MotionEvent.ACTION_UP) {
+            isUserTouched = false;
+
             if (draggingHandle != null) {
                 draggingHandle = null;
             }
@@ -665,6 +670,8 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
                 onScrollEnd(event);
             }
         } else if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            isUserTouched = true;
+
             orgX = view_pager_toguard_lastX = lastX;
             orgY = view_pager_toguard_lastY = lastY;
 

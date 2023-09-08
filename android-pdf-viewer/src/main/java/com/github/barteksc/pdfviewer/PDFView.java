@@ -1315,6 +1315,10 @@ public class PDFView extends RelativeLayout {
         jumpTo(defaultPage, false);
     }
 
+    public boolean isUserTouched() {
+        return dragPinchManager.isUserTouched();
+    }
+
     void loadError(Throwable t) {
         state = State.ERROR;
         // store reference, because callbacks will be cleared in recycle() method
