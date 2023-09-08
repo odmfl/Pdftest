@@ -91,6 +91,12 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
         return isUserTouched;
     }
 
+    private PDFView.UserTouchCallback userTouchCallback;
+
+    public void setUserTouchCallback(PDFView.UserTouchCallback userTouchCallback) {
+        this.userTouchCallback = userTouchCallback;
+    }
+
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e) {
         boolean onTapHandled = false;
@@ -660,6 +666,8 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
         pdfView.redrawSel();
         if (event.getAction() == MotionEvent.ACTION_UP) {
             isUserTouched = false;
+            if (userTouchCallback != null)
+                userTouchCallback.onUp();
 
             if (draggingHandle != null) {
                 draggingHandle = null;
@@ -671,6 +679,8 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
             }
         } else if (event.getAction() == MotionEvent.ACTION_DOWN) {
             isUserTouched = true;
+            if (userTouchCallback != null)
+                userTouchCallback.onDownTouch();
 
             orgX = view_pager_toguard_lastX = lastX;
             orgY = view_pager_toguard_lastY = lastY;

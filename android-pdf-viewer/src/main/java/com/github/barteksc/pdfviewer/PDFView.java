@@ -167,6 +167,10 @@ public class PDFView extends RelativeLayout {
 
     }
 
+    public void setUserTouchCallback(UserTouchCallback userTouchCallback) {
+        dragPinchManager.setUserTouchCallback(userTouchCallback);
+    }
+
     /**
      * START - scrolling in first page direction
      * END - scrolling in last page direction
@@ -2174,5 +2178,11 @@ public class PDFView extends RelativeLayout {
 
     public interface OnSelection {
         void onSelection(boolean hasSelection);
+    }
+
+    public interface UserTouchCallback {
+        void onDownTouch();
+
+        void onUp();
     }
 }

@@ -94,7 +94,6 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
     }
 
 
@@ -234,6 +233,18 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
             }
         });
 
+        pdfView.setUserTouchCallback(new PDFView.UserTouchCallback() {
+
+            @Override
+            public void onDownTouch() {
+                Log.d(TAG, "onDownTouch:");
+            }
+
+            @Override
+            public void onUp() {
+                Log.d(TAG, "onUp:");
+            }
+        });
     }
 
     private void displayFromAsset(String assetFileName) {
