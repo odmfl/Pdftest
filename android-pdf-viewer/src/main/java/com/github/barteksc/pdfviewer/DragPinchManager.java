@@ -97,6 +97,10 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
         this.userTouchCallback = userTouchCallback;
     }
 
+    public PDFView.UserTouchCallback getUserTouchCallback() {
+        return userTouchCallback;
+    }
+
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e) {
         boolean onTapHandled = false;

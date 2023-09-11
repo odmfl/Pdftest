@@ -241,6 +241,11 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
             }
 
             @Override
+            public void onScroll(float distanceX, float distanceY) {
+                Log.d(TAG, "onScroll:\n    distanceX =" +" " +distanceX + "\n    distanceY = " + distanceY);
+            }
+
+            @Override
             public void onUp() {
                 Log.d(TAG, "onUp:");
             }

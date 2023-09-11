@@ -1374,6 +1374,11 @@ public class PDFView extends RelativeLayout {
      * @param moveHandle whether to move scroll handle or not
      */
     public void moveTo(float offsetX, float offsetY, boolean moveHandle) {
+        UserTouchCallback userTouchCallback = dragPinchManager.getUserTouchCallback();
+        if (userTouchCallback != null) {
+            userTouchCallback.onScroll(Math.abs(offsetX), Math.abs(offsetY));
+        }
+
         if (swipeVertical) {
             // Check X offset
             float scaledPageWidth = toCurrentScale(pdfFile.getMaxPageWidth());
@@ -2182,6 +2187,8 @@ public class PDFView extends RelativeLayout {
 
     public interface UserTouchCallback {
         void onDownTouch();
+
+        void onScroll(float distanceX, float distanceY);
 
         void onUp();
     }
