@@ -66,6 +66,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
     private boolean scaling = false;
     private boolean enabled = false;
     private boolean isUserTouched = false;
+    private boolean isCurrentFlinging = false;
 
     DragPinchManager(PDFView pdfView, AnimationManager animationManager) {
         this.pdfView = pdfView;
@@ -116,7 +117,8 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
 //            } else {
 //            }
         } else {
-            onTapHandled = pdfView.callbacks.callOnTap(e);
+            if (!isCurrentFlinging)
+                onTapHandled = pdfView.callbacks.callOnTap(e);
         }
         if (pdfView.pdfFile == null) {
             return true;
@@ -662,8 +664,11 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
             return false;
         }
 
-        boolean retVal = scaleGestureDetector.onTouchEvent(event);
-        retVal = gestureDetector.onTouchEvent(event) || retVal;
+        if (event.getAction() == MotionEvent.ACTION_DOWN)
+            isCurrentFlinging = animationManager.isFlinging();
+
+        scaleGestureDetector.onTouchEvent(event);
+        gestureDetector.onTouchEvent(event);
 
         lastX = event.getX();
         lastY = event.getY();

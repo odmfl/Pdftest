@@ -242,7 +242,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
             @Override
             public void onScroll(float distanceX, float distanceY) {
-                Log.d(TAG, "onScroll:\n    distanceX =" +" " +distanceX + "\n    distanceY = " + distanceY);
+                Log.d(TAG, "onScroll:\n    distanceX =" + " " + distanceX + "\n    distanceY = " + distanceY);
             }
 
             @Override
@@ -264,6 +264,10 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 .autoSpacing(false)
                 .spacing(10) // in dp
                 .spacingTop(24)
+                .onTap(e -> {
+                    Toast.makeText(PDFViewActivity.this, "Click", Toast.LENGTH_SHORT).show();
+                    return false;
+                })
                 .spacingBottom(24)
                 .onPageError(this)
                 .load();
