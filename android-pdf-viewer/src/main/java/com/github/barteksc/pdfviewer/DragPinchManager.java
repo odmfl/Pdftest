@@ -66,6 +66,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
     private boolean scaling = false;
     private boolean enabled = false;
     private boolean isUserTouched = false;
+    private boolean isUserMoved = false;
     private boolean isCurrentFlinging = false;
 
     DragPinchManager(PDFView pdfView, AnimationManager animationManager) {
@@ -90,6 +91,10 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
 
     public boolean isUserTouched() {
         return isUserTouched;
+    }
+
+    public boolean isUserMoved() {
+        return isUserMoved;
     }
 
     private PDFView.UserTouchCallback userTouchCallback;
@@ -675,6 +680,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
         pdfView.redrawSel();
         if (event.getAction() == MotionEvent.ACTION_UP) {
             isUserTouched = false;
+            isUserMoved = false;
             if (userTouchCallback != null)
                 userTouchCallback.onUp();
 
@@ -687,6 +693,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
                 onScrollEnd(event);
             }
         } else if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            isUserMoved = false;
             isUserTouched = true;
             if (userTouchCallback != null)
                 userTouchCallback.onDownTouch();
@@ -708,7 +715,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
             }
 
         } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-
+            isUserMoved = true;
 
             dragHandle(event.getX(),
                     event.getY());

@@ -1323,6 +1323,10 @@ public class PDFView extends RelativeLayout {
         return dragPinchManager.isUserTouched();
     }
 
+    public boolean isUserMoved() {
+        return dragPinchManager.isUserMoved();
+    }
+
     void loadError(Throwable t) {
         state = State.ERROR;
         // store reference, because callbacks will be cleared in recycle() method
