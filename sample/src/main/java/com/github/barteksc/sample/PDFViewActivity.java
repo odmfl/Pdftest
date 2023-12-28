@@ -268,7 +268,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 .pageSnap(true)
                 .autoSpacing(true)
                 .pageFling(true)
-                .linkHandler(DefaultLinkHandler(pdfView))
+                .linkHandler(DefaultLinkHandler(this)
                 .spacing(10) // in dp
                 .spacingTop(24)
                 .onTap(e -> {
@@ -295,7 +295,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 .pageSnap(true)
                 .autoSpacing(true)
                 .pageFling(true)
-                .linkHandler(DefaultLinkHandler(pdfView))
+                .linkHandler(DefaultLinkHandler(this))
                 .spacing(10) // in dp
                 .spacingTop(24)
                 .spacingBottom(24)
