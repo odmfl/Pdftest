@@ -286,7 +286,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 .onPageChange(this)
                 .enableAnnotationRendering(true)
                 .onLoad(this)
-                .scrollHandle(new DefaultScrollHandle(PDFViewActivity))
+                .scrollHandle(new DefaultScrollHandle(this))
                 .swipeHorizontal(true)
                 .pageSnap(true)
                 .autoSpacing(true)
