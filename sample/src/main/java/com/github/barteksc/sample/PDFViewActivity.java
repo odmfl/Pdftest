@@ -39,6 +39,9 @@ import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener;
 import com.github.barteksc.pdfviewer.listener.OnPageChangeListener;
 import com.github.barteksc.pdfviewer.listener.OnPageErrorListener;
 import com.github.barteksc.pdfviewer.scroll.DefaultScrollHandle;
+import com.github.barteksc.pdfviewer.link.LinkHandler;
+import com.github.barteksc.pdfviewer.link.DefaultLinkHandler;
+import com.github.barteksc.pdfviewer.model.LinkTapEvent;
 import com.shockwave.pdfium.PdfDocument;
 
 import org.androidannotations.annotations.AfterViews;
@@ -261,7 +264,11 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 .enableAnnotationRendering(true)
                 .onLoad(this)
                 .scrollHandle(new DefaultScrollHandle(this))
-                .autoSpacing(false)
+                .swipeHorizontal(true)
+                .pageSnap(true)
+                .autoSpacing(true)
+                .pageFling(true)
+                .linkHandler(DefaultLinkHandler)
                 .spacing(10) // in dp
                 .spacingTop(24)
                 .onTap(e -> {
@@ -284,7 +291,11 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 .enableAnnotationRendering(true)
                 .onLoad(this)
                 .scrollHandle(new DefaultScrollHandle(this))
-                .autoSpacing(false)
+                .swipeHorizontal(true)
+                .pageSnap(true)
+                .autoSpacing(true)
+                .pageFling(true)
+                .linkHandler(DefaultLinkHandler)
                 .spacing(10) // in dp
                 .spacingTop(24)
                 .spacingBottom(24)
