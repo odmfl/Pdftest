@@ -81,7 +81,7 @@ public class PDocSelection extends View {
 
     private void init() {
         rectPaint = new Paint();
-        rectPaint.setColor(0x66109afe);
+        rectPaint.setColor(getResources().getColor(R.color.selection_color));
         //rectPaint.setColor(0xffffff00);
         rectHighlightPaint = new Paint();
         rectHighlightPaint.setColor(getResources().getColor(R.color.heightlight_color));

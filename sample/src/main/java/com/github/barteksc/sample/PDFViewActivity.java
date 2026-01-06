@@ -349,6 +349,10 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     public void onPageChanged(int page, int pageCount) {
         pageNumber = page;
         setTitle(String.format("%s %s / %s", pdfFileName, page + 1, pageCount));
+        // Refresh highlights when page changes
+        if (pdfView.isSearching) {
+            pdfView.redrawSel();
+        }
     }
 
     public String getFileName(Uri uri) {
