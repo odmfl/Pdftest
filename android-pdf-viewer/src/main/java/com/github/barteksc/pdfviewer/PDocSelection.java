@@ -38,6 +38,7 @@ public class PDocSelection extends View {
     Paint rectPaint;
     Paint rectFramePaint;
     Paint rectHighlightPaint;
+    Paint rectActiveHighlightPaint;  // Orange paint for active search result
 
     /**
      * Small Canvas for magnifier.
@@ -86,8 +87,11 @@ public class PDocSelection extends View {
         //rectPaint.setColor(0xffffff00);
         rectHighlightPaint = new Paint();
         rectHighlightPaint.setColor(ContextCompat.getColor(getContext(), R.color.highlight_color));
+        rectActiveHighlightPaint = new Paint();
+        rectActiveHighlightPaint.setColor(0xAAFF8800);  // Semi-transparent orange
         rectPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));
         rectHighlightPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));
+        rectActiveHighlightPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));
         rectFramePaint = new Paint();
         rectFramePaint.setColor(0xccc7ab21);
         rectFramePaint.setStyle(Paint.Style.STROKE);
@@ -234,6 +238,7 @@ public class PDocSelection extends View {
     /**
      * Draw search highlights for all visible pages with search results.
      * Uses a simple, direct coordinate transformation approach.
+     * Active search result is highlighted in orange, others in yellow.
      */
     private void drawSearchHighlights(Canvas canvas, RectF tempRect) {
         // Get all pages with search results (current page and adjacent pages)
@@ -248,12 +253,19 @@ public class PDocSelection extends View {
                 ArrayList<SearchRecordItem> data = (ArrayList<SearchRecordItem>) record.data;
                 
                 if (data != null) {
+                    // Determine if this page contains the active search result
+                    boolean isActivePage = (page == pDocView.currentSearchPage);
+                    
                     // Draw highlights for each search result on this page
                     int dataSize = data.size();
                     for (int j = 0; j < dataSize; j++) {
                         try {
                             SearchRecordItem item = data.get(j);
                             if (item == null) continue;
+                            
+                            // Determine if this is the active result
+                            boolean isActiveResult = isActivePage && (j == pDocView.currentSearchResultIndex);
+                            Paint paintToUse = isActiveResult ? rectActiveHighlightPaint : rectHighlightPaint;
                             
                             RectF[] rects = item.rects;
                             if (rects != null) {
@@ -262,8 +274,8 @@ public class PDocSelection extends View {
                                     // Convert PDF coordinates to view coordinates
                                     pDocView.sourceToViewRectFFSearch(sourceRect, tempRect, page);
                                     
-                                    // Draw the highlight directly - no complex matrix transformation needed
-                                    canvas.drawRect(tempRect, rectHighlightPaint);
+                                    // Draw the highlight directly - use orange for active, yellow for others
+                                    canvas.drawRect(tempRect, paintToUse);
                                 }
                             }
                         } catch (IndexOutOfBoundsException e) {
