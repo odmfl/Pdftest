@@ -16,6 +16,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 
+import androidx.core.content.ContextCompat;
 
 import com.github.barteksc.pdfviewer.model.SearchRecord;
 import com.github.barteksc.pdfviewer.model.SearchRecordItem;
@@ -81,10 +82,10 @@ public class PDocSelection extends View {
 
     private void init() {
         rectPaint = new Paint();
-        rectPaint.setColor(0x66109afe);
+        rectPaint.setColor(ContextCompat.getColor(getContext(), R.color.selection_color));
         //rectPaint.setColor(0xffffff00);
         rectHighlightPaint = new Paint();
-        rectHighlightPaint.setColor(getResources().getColor(R.color.heightlight_color));
+        rectHighlightPaint.setColor(ContextCompat.getColor(getContext(), R.color.highlight_color));
         rectPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));
         rectHighlightPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));
         rectFramePaint = new Paint();
@@ -227,29 +228,40 @@ public class PDocSelection extends View {
                         pDocView.getAllMatchOnPage(record);
                         int page = record.currentPage != -1 ? record.currentPage : pDocView.currentPage;
                         ArrayList<SearchRecordItem> data = (ArrayList<SearchRecordItem>) record.data;
-                        for (int j = 0, len = data.size(); j < len; j++) {
-                            RectF[] rects = data.get(j).rects;
-                            if (rects != null) {
-                                for (RectF rI : rects) {
-                                    pDocView.sourceToViewRectFFSearch(rI, VR, page);
-                                    matrix.reset();
-                                    int bmWidth = (int) rI.width();
-                                    int bmHeight = (int) rI.height();
-                                    pDocView.setMatrixArray(pDocView.srcArray, 0, 0, bmWidth, 0, bmWidth, bmHeight, 0, bmHeight);
-                                    pDocView.setMatrixArray(pDocView.dstArray, VR.left, VR.top, VR.right, VR.top, VR.right, VR.bottom, VR.left, VR.bottom);
+                        if (data != null) {
+                            // Store size to avoid repeated calls and protect against concurrent modification
+                            int dataSize = data.size();
+                            for (int j = 0; j < dataSize; j++) {
+                                try {
+                                    SearchRecordItem item = data.get(j);
+                                    if (item == null) continue;
+                                    RectF[] rects = item.rects;
+                                    if (rects != null) {
+                                        for (RectF rI : rects) {
+                                            pDocView.sourceToViewRectFFSearch(rI, VR, page);
+                                            matrix.reset();
+                                            int bmWidth = (int) rI.width();
+                                            int bmHeight = (int) rI.height();
+                                            pDocView.setMatrixArray(pDocView.srcArray, 0, 0, bmWidth, 0, bmWidth, bmHeight, 0, bmHeight);
+                                            pDocView.setMatrixArray(pDocView.dstArray, VR.left, VR.top, VR.right, VR.top, VR.right, VR.bottom, VR.left, VR.bottom);
 
-                                    matrix.setPolyToPoly(pDocView.srcArray, 0, pDocView.dstArray, 0, 4);
-                                    matrix.postRotate(0, pDocView.getScreenWidth(), pDocView.getScreenHeight());
+                                            matrix.setPolyToPoly(pDocView.srcArray, 0, pDocView.dstArray, 0, 4);
+                                            matrix.postRotate(0, pDocView.getScreenWidth(), pDocView.getScreenHeight());
 
-                                    canvas.save();
-                                    canvas.concat(matrix);
-                                    VR.set(0, 0, bmWidth, bmHeight);
-                                    canvas.drawRect(VR, rectHighlightPaint);
-                                    canvas.restore();
+                                            canvas.save();
+                                            canvas.concat(matrix);
+                                            VR.set(0, 0, bmWidth, bmHeight);
+                                            canvas.drawRect(VR, rectHighlightPaint);
+                                            canvas.restore();
+                                        }
+                                    }
+                                } catch (IndexOutOfBoundsException e) {
+                                    // Handle concurrent modification gracefully
+                                    Log.e("PDF_TEXT_SELECTION", "Data modified during rendering", e);
+                                    break;
                                 }
                             }
                         }
-
                     }
                 }
             }

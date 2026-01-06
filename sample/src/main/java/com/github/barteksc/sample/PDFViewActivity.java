@@ -17,6 +17,9 @@ package com.github.barteksc.sample;
 
 import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -28,6 +31,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.SearchView;
@@ -68,6 +72,9 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
     private final static int REQUEST_CODE = 42;
     public static final int PERMISSION_CODE = 42042;
+    
+    /** Maximum length for debug log preview of copied text */
+    private static final int DEBUG_PREVIEW_LENGTH = 50;
 
     public static final String SAMPLE_FILE = "sample.pdf";
     public static final String READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
@@ -85,6 +92,11 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     ImageButton next;
     @ViewById
     TextView search_result_count;
+
+    @ViewById
+    LinearLayout copy_controller;
+    @ViewById
+    Button copy_button;
 
     @NonConfigurationInstance
     Uri uri;
@@ -197,6 +209,8 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                     pdfView.jumpTo(page);
                     searchPage = page;
                     updateSearchResultCount();
+                    // Refresh highlights
+                    pdfView.redrawSel();
                 }
             }
         });
@@ -214,6 +228,8 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                     pdfView.jumpTo(page);
                     searchPage = page;
                     updateSearchResultCount();
+                    // Refresh highlights
+                    pdfView.redrawSel();
                 }
             }
         });
@@ -239,11 +255,23 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
             public void onSelection(boolean hasSelection) {
                 if (hasSelection) {
                     setTitle("Select Text");
-                    setTitleColor(getResources().getColor(android.R.color.holo_blue_bright));
+                    setTitleColor(ContextCompat.getColor(PDFViewActivity.this, android.R.color.holo_blue_bright));
+                    // Show copy button when text is selected
+                    copy_controller.setVisibility(View.VISIBLE);
                 } else {
                     setTitle(pdfFileName);
-                    setTitleColor(getResources().getColor(android.R.color.white));
+                    setTitleColor(ContextCompat.getColor(PDFViewActivity.this, android.R.color.white));
+                    // Hide copy button when no text is selected
+                    copy_controller.setVisibility(View.GONE);
                 }
+            }
+        });
+
+        // Copy button click handler
+        copy_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                copySelectedText();
             }
         });
 
@@ -324,6 +352,10 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     public void onPageChanged(int page, int pageCount) {
         pageNumber = page;
         setTitle(String.format("%s %s / %s", pdfFileName, page + 1, pageCount));
+        // Refresh highlights when page changes
+        if (pdfView.isSearching) {
+            pdfView.redrawSel();
+        }
     }
 
     public String getFileName(Uri uri) {
@@ -450,5 +482,57 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
 
         return false;
+    }
+
+    /**
+     * Copy the currently selected text to the system clipboard.
+     * Shows a toast message confirming the copy operation with character count.
+     */
+    private void copySelectedText() {
+        try {
+            String selectedText = pdfView.getSelection();
+            if (selectedText != null && !selectedText.trim().isEmpty()) {
+                // Store length once to avoid repeated calls and ensure consistency
+                final int textLength = selectedText.length();
+                
+                // Get the clipboard manager
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                
+                // Check if clipboard service is available
+                if (clipboard == null) {
+                    Toast.makeText(this, R.string.clipboard_unavailable, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
+                // Create a clip with the selected text
+                ClipData clip = ClipData.newPlainText("PDF Text", selectedText);
+                
+                // Set the clip to the clipboard
+                clipboard.setPrimaryClip(clip);
+                
+                // Show confirmation toast with character count using string resource
+                String message = getString(R.string.text_copied_with_count, textLength);
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+                
+                // Log for debugging (only if debug logging is enabled and text has content)
+                if (Log.isLoggable(TAG, Log.DEBUG) && textLength > 0) {
+                    try {
+                        int previewLength = Math.min(DEBUG_PREVIEW_LENGTH, textLength);
+                        String preview = selectedText.substring(0, previewLength);
+                        String suffix = textLength > DEBUG_PREVIEW_LENGTH ? "..." : "";
+                        Log.d(TAG, "Copied text: " + preview + suffix);
+                    } catch (StringIndexOutOfBoundsException e) {
+                        // Handle rare concurrent modification case
+                        Log.d(TAG, "Copied text (length: " + textLength + ")");
+                    }
+                }
+            } else {
+                Toast.makeText(this, R.string.no_text_selected, Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error copying text", e);
+            String errorMessage = getString(R.string.error_copying_text, e.getMessage());
+            Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show();
+        }
     }
 }
