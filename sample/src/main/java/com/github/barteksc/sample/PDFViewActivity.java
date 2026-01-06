@@ -94,7 +94,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
     String pdfFileName;
 
-    int serchPage = -1;
+    int searchPage = -1;
     int currentResultIndex = 0;
     List<Integer> searchResultPages = new ArrayList<>();
 
@@ -136,7 +136,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
             @Override
             public boolean onClose() {
                 pdfView.clearSearch();
-                serchPage = -1;
+                searchPage = -1;
                 currentResultIndex = 0;
                 searchResultPages.clear();
                 search_controller.setVisibility(View.GONE);
@@ -195,7 +195,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                     }
                     int page = searchResultPages.get(currentResultIndex);
                     pdfView.jumpTo(page);
-                    serchPage = page;
+                    searchPage = page;
                     updateSearchResultCount();
                 }
             }
@@ -212,7 +212,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                     }
                     int page = searchResultPages.get(currentResultIndex);
                     pdfView.jumpTo(page);
-                    serchPage = page;
+                    searchPage = page;
                     updateSearchResultCount();
                 }
             }
@@ -358,7 +358,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         // Clear search state when new document is loaded
         searchResultPages.clear();
         currentResultIndex = 0;
-        serchPage = -1;
+        searchPage = -1;
 
     }
 
@@ -434,8 +434,8 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
             
             // Jump to first result
             if (!searchResultPages.isEmpty()) {
-                serchPage = searchResultPages.get(0);
-                pdfView.jumpTo(serchPage);
+                searchPage = searchResultPages.get(0);
+                pdfView.jumpTo(searchPage);
             }
             
             updateSearchResultCount();
