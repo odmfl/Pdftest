@@ -155,6 +155,45 @@ You can also create custom link handlers, just implement **LinkHandler** interfa
 `Configurator#linkHandler(LinkHandler)` method. Take a look at [DefaultLinkHandler](https://github.com/barteksc/AndroidPdfViewer/tree/master/android-pdf-viewer/src/main/java/com/github/barteksc/pdfviewer/link/DefaultLinkHandler.java)
 source to implement custom behavior.
 
+## Text Search
+The library supports text search functionality to find and highlight text within PDF documents.
+
+### Basic Usage
+```java
+// Set up search completion listener
+pdfView.setOnSearchListener(new PDFView.OnSearchListener() {
+    @Override
+    public void onSearchCompleted(int resultCount) {
+        // Handle search results
+        if (resultCount > 0) {
+            Toast.makeText(context, resultCount + " results found", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(context, "No results found", Toast.LENGTH_SHORT).show();
+        }
+    }
+});
+
+// Start search (case-insensitive by default)
+pdfView.search("search term");
+
+// Clear search results and highlights
+pdfView.clearSearch();
+```
+
+### Features
+* **Background Search**: Search runs on a background thread and doesn't block the UI
+* **Result Highlighting**: Matching text is highlighted on the PDF pages
+* **Case-Insensitive**: Search is case-insensitive by default
+* **Multi-Page Support**: Searches across all pages in the document
+* **Result Navigation**: Access search results via `pdfView.searchRecords` to implement navigation
+
+### Implementation Example
+See the [sample app](https://github.com/barteksc/AndroidPdfViewer/tree/master/sample/src/main/java/com/github/barteksc/sample/PDFViewActivity.java) for a complete implementation including:
+* SearchView integration in action bar
+* Previous/Next navigation through results
+* Result count display ("X of Y")
+* Automatic highlighting of found text
+
 ## Pages fit policy
 Since version 3.0.0, library supports fitting pages into the screen in 3 modes:
 * WIDTH - width of widest page is equal to screen width
