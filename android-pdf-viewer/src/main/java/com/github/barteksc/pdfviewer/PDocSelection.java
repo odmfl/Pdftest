@@ -16,6 +16,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 
+import androidx.core.content.ContextCompat;
 
 import com.github.barteksc.pdfviewer.model.SearchRecord;
 import com.github.barteksc.pdfviewer.model.SearchRecordItem;
@@ -81,10 +82,10 @@ public class PDocSelection extends View {
 
     private void init() {
         rectPaint = new Paint();
-        rectPaint.setColor(getResources().getColor(R.color.selection_color));
+        rectPaint.setColor(ContextCompat.getColor(getContext(), R.color.selection_color));
         //rectPaint.setColor(0xffffff00);
         rectHighlightPaint = new Paint();
-        rectHighlightPaint.setColor(getResources().getColor(R.color.highlight_color));
+        rectHighlightPaint.setColor(ContextCompat.getColor(getContext(), R.color.highlight_color));
         rectPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));
         rectHighlightPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));
         rectFramePaint = new Paint();

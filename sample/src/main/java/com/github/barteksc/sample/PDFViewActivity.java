@@ -252,12 +252,12 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
             public void onSelection(boolean hasSelection) {
                 if (hasSelection) {
                     setTitle("Select Text");
-                    setTitleColor(getResources().getColor(android.R.color.holo_blue_bright));
+                    setTitleColor(ContextCompat.getColor(PDFViewActivity.this, android.R.color.holo_blue_bright));
                     // Show copy button when text is selected
                     copy_controller.setVisibility(View.VISIBLE);
                 } else {
                     setTitle(pdfFileName);
-                    setTitleColor(getResources().getColor(android.R.color.white));
+                    setTitleColor(ContextCompat.getColor(PDFViewActivity.this, android.R.color.white));
                     // Hide copy button when no text is selected
                     copy_controller.setVisibility(View.GONE);
                 }
