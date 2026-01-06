@@ -291,28 +291,32 @@ public class PDocSelection extends View {
     
     /**
      * Draw text selection highlights and handles.
-     * Uses the same matrix transformation as before for consistency.
+     * Uses proper page-aware coordinate transformation for multi-page selections.
      */
     private void drawTextSelection(Canvas canvas, RectF VR, Matrix matrix) {
-        // Draw left handle
-        pDocView.sourceToViewRectFF(pDocView.handleLeftPos, VR);
+        // Draw left handle (always on the start page)
+        pDocView.sourceToViewRectFFForPage(pDocView.handleLeftPos, VR, pDocView.selPageSt);
         float left = VR.left + drawableDeltaW;
         pDocView.handleLeft.setBounds((int) (left - drawableWidth), (int) VR.bottom, (int) left, (int) (VR.bottom + drawableHeight));
         pDocView.handleLeft.draw(canvas);
         
-        // Draw right handle
-        pDocView.sourceToViewRectFF(pDocView.handleRightPos, VR);
+        // Draw right handle (always on the end page)
+        pDocView.sourceToViewRectFFForPage(pDocView.handleRightPos, VR, pDocView.selPageEd);
         left = VR.right - drawableDeltaW;
         pDocView.handleRight.setBounds((int) left, (int) VR.bottom, (int) (left + drawableWidth), (int) (VR.bottom + drawableHeight));
         pDocView.handleRight.draw(canvas);
         
         pDocView.sourceToViewCoord(pDocView.sCursorPos, vCursorPos);
         
-        // Draw selection highlight rectangles
+        // Draw selection highlight rectangles for each page
         for (int i = 0; i < rectPoolSize; i++) {
+            // Calculate which page this rectangle pool corresponds to
+            int page = pDocView.selPageSt + i;
+            
             ArrayList<RectF> rectPage = rectPool.get(i);
             for (RectF rI : rectPage) {
-                pDocView.sourceToViewRectFF(rI, VR);
+                // Use the page-specific coordinate transformation
+                pDocView.sourceToViewRectFFForPage(rI, VR, page);
                 matrix.reset();
                 int bmWidth = (int) rI.width();
                 int bmHeight = (int) rI.height();

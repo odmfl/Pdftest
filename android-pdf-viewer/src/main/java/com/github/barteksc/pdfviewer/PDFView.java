@@ -871,6 +871,25 @@ public class PDFView extends RelativeLayout {
                 sRect.bottom * getZoom() + ((pageY)) + currentYOffset
         );
     }
+    
+    /**
+     * Convert source (PDF) rectangle coordinates to view (screen) coordinates for a specific page.
+     * This is used for rendering selection highlights on multi-page documents.
+     * 
+     * @param sRect Source rectangle in PDF coordinates
+     * @param vTarget Target rectangle in view coordinates (output)
+     * @param page The page number this rectangle belongs to
+     */
+    void sourceToViewRectFFForPage(@NotNull RectF sRect, @NotNull RectF vTarget, int page) {
+        int pageX = (int) pdfFile.getSecondaryPageOffset(page, getZoom());
+        int pageY = (int) pdfFile.getPageOffset(page, getZoom());
+        vTarget.set(
+                sRect.left * getZoom() + ((pageX)) + currentXOffset,
+                sRect.top * getZoom() + ((pageY)) + currentYOffset,
+                sRect.right * getZoom() + ((pageX)) + currentXOffset,
+                sRect.bottom * getZoom() + ((pageY)) + currentYOffset
+        );
+    }
 
     void sourceToViewRectFF(@NotNull RectF sRect, @NotNull RectF vTarget) {
         float mappedX = -getCurrentXOffset() + dragPinchManager.lastX;
