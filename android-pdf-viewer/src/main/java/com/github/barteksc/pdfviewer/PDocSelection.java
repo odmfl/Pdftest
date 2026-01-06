@@ -118,26 +118,21 @@ public class PDocSelection extends View {
         //  CMN.Log("resetSel", pDocView.selPageSt, pDocView.selPageEd, pDocView.selStart, pDocView.selEnd);
 
         if (pDocView != null && pDocView.pdfFile != null && pDocView.hasSelection) {
-            long tid = pDocView.dragPinchManager.loadText();
-            if (pDocView.isNotCurrentPage(tid)) {
-                return;
-            }
-
+            // FIXED: Properly swap page indices if needed
             boolean b1 = pDocView.selPageEd < pDocView.selPageSt;
             if (b1) {
+                int temp = pDocView.selPageEd;
                 pDocView.selPageEd = pDocView.selPageSt;
-                pDocView.selPageSt = pDocView.selPageEd;
-            } else {
-                pDocView.selPageEd = pDocView.selPageEd;
-                pDocView.selPageSt = pDocView.selPageSt;
+                pDocView.selPageSt = temp;
             }
-            if (b1 || pDocView.selPageEd == pDocView.selPageSt && pDocView.selEnd < pDocView.selStart) {
+            
+            // FIXED: Properly swap selection indices if needed
+            if (b1 || (pDocView.selPageEd == pDocView.selPageSt && pDocView.selEnd < pDocView.selStart)) {
+                int temp = pDocView.selStart;
                 pDocView.selStart = pDocView.selEnd;
-                pDocView.selEnd = pDocView.selStart;
-            } else {
-                pDocView.selStart = pDocView.selStart;
-                pDocView.selEnd = pDocView.selEnd;
+                pDocView.selEnd = temp;
             }
+            
             int pageCount = pDocView.selPageEd - pDocView.selPageSt;
             int sz = rectPool.size();
             ArrayList<RectF> rectPagePool;
@@ -165,19 +160,18 @@ public class PDocSelection extends View {
 
     public void recalcHandles() {
         PDFView page = pDocView;
-        long tid = page.dragPinchManager.prepareText();
-        if (pDocView.isNotCurrentPage(tid)) {
-            return;
-        }
-        float mappedX = -pDocView.getCurrentXOffset() + pDocView.dragPinchManager.lastX;
-        float mappedY = -pDocView.getCurrentYOffset() + pDocView.dragPinchManager.lastY;
-        int pageIndex = pDocView.pdfFile.getPageAtOffset(pDocView.isSwipeVertical() ? mappedY : mappedX, pDocView.getZoom());
-
+        
         int st = pDocView.selStart;
         int ed = pDocView.selEnd;
         int dir = pDocView.selPageEd - pDocView.selPageSt;
         dir = (int) Math.signum(dir == 0 ? ed - st : dir);
         if (dir != 0) {
+            // FIXED: Prepare text for the start page of the selection
+            long tidStart = page.dragPinchManager.prepareText(pDocView.selPageSt);
+            if (pDocView.isNotCurrentPage(tidStart)) {
+                return;
+            }
+            
             String atext = page.dragPinchManager.allText;
             int len = atext.length();
             if (st >= 0 && st < len) {
@@ -186,12 +180,16 @@ public class PDocSelection extends View {
                     st += dir;
                 }
             }
-            page.getCharPos(pDocView.handleLeftPos, st);
+            page.getCharPos(pDocView.handleLeftPos, st, pDocView.selPageSt);
             pDocView.lineHeightLeft = pDocView.handleLeftPos.height() / 2;
-            page.getCharLoosePos(pDocView.handleLeftPos, st);
+            page.getCharLoosePos(pDocView.handleLeftPos, st, pDocView.selPageSt);
 
+            // FIXED: Prepare text for the end page of the selection
             page = pDocView;
-            page.dragPinchManager.prepareText();
+            long tidEnd = page.dragPinchManager.prepareText(pDocView.selPageEd);
+            if (pDocView.isNotCurrentPage(tidEnd)) {
+                return;
+            }
             atext = page.dragPinchManager.allText;
             len = atext.length();
             int delta = -1;
@@ -204,9 +202,9 @@ public class PDocSelection extends View {
                 }
             }//"RectF(373.0, 405.0, 556.0, 434.0)"
             //CMN.Log("getCharPos", page.allText.substring(ed+delta, ed+delta+1));
-            page.getCharPos(pDocView.handleRightPos, ed + delta);
+            page.getCharPos(pDocView.handleRightPos, ed + delta, pDocView.selPageEd);
             pDocView.lineHeightRight = pDocView.handleRightPos.height() / 2;
-            page.getCharLoosePos(pDocView.handleRightPos, ed + delta);
+            page.getCharLoosePos(pDocView.handleRightPos, ed + delta, pDocView.selPageEd);
         }
     }
 

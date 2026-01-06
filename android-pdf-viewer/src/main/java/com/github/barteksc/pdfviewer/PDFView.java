@@ -557,7 +557,10 @@ public class PDFView extends RelativeLayout {
         float mappedX = -getCurrentXOffset() + dragPinchManager.lastX;
         float mappedY = -getCurrentYOffset() + dragPinchManager.lastY;
         int page = pdfFile.getPageAtOffset(isSwipeVertical() ? mappedY : mappedX, getZoom());
+        getCharPos(pos, index, page);
+    }
 
+    public void getCharPos(RectF pos, int index, int page) {
         long pagePtr = pdfFile.pdfDocument.mNativePagesPtr.get(page);
 
         SizeF size = pdfFile.getPageSize(page);
@@ -565,7 +568,7 @@ public class PDFView extends RelativeLayout {
         pdfiumCore.nativeGetCharPos(pagePtr
                 , 0
                 , 0
-                , (int) size.getWidth(), (int) size.getHeight(), pos, dragPinchManager.loadText(), index, true);
+                , (int) size.getWidth(), (int) size.getHeight(), pos, dragPinchManager.loadText(page), index, true);
 
     }
 
@@ -573,15 +576,17 @@ public class PDFView extends RelativeLayout {
         float mappedX = -getCurrentXOffset() + dragPinchManager.lastX;
         float mappedY = -getCurrentYOffset() + dragPinchManager.lastY;
         int page = pdfFile.getPageAtOffset(isSwipeVertical() ? mappedY : mappedX, getZoom());
+        getCharLoosePos(pos, index, page);
+    }
 
-
+    public void getCharLoosePos(RectF pos, int index, int page) {
         long pagePtr = pdfFile.pdfDocument.mNativePagesPtr.get(page);
         SizeF size = pdfFile.getPageSize(page);
         //   SizeF size = pdfFile.getScaledPageSize(page, getZoom());
         pdfiumCore.nativeGetMixedLooseCharPos(pagePtr
                 , 0
                 , getLateralOffset()
-                , (int) size.getWidth(), (int) size.getHeight(), pos, dragPinchManager.loadText(), index, true);
+                , (int) size.getWidth(), (int) size.getHeight(), pos, dragPinchManager.loadText(page), index, true);
 
     }
 
@@ -595,7 +600,7 @@ public class PDFView extends RelativeLayout {
         pdfiumCore.nativeGetMixedLooseCharPos(pagePtr
                 , 0
                 , getLateralOffset()
-                , (int) size.getWidth(), (int) size.getHeight(), pos, dragPinchManager.loadText(), index, true);
+                , (int) size.getWidth(), (int) size.getHeight(), pos, dragPinchManager.loadText(page), index, true);
 
     }
 
@@ -1171,7 +1176,8 @@ public class PDFView extends RelativeLayout {
                     int pageStart = selPageSt;
                     int pageCount = selPageEd - pageStart;
                     if (pageCount == 0) {
-                        dragPinchManager.prepareText();
+                        // FIXED: Use the specific page for text selection
+                        dragPinchManager.prepareText(pageStart);
                         int newSelEnd = selEnd;
                         if (selEnd > dragPinchManager.allText.length())
                             newSelEnd = dragPinchManager.allText.length();
@@ -1180,14 +1186,15 @@ public class PDFView extends RelativeLayout {
                     StringBuilder sb = new StringBuilder();
                     int selCount = 0;
                     for (int i = 0; i <= pageCount; i++) {
-
-                        dragPinchManager.prepareText();
+                        // FIXED: Prepare text for each specific page in the selection
+                        dragPinchManager.prepareText(pageStart + i);
                         int len = dragPinchManager.allText.length();
                         selCount += i == 0 ? len - selStart : i == pageCount ? selEnd : len;
                     }
                     sb.ensureCapacity(selCount + 64);
                     for (int i = 0; i <= pageCount; i++) {
-
+                        // FIXED: Prepare text for each specific page when building the string
+                        dragPinchManager.prepareText(pageStart + i);
                         sb.append(dragPinchManager.allText.substring(i == 0 ? selStart : 0, i == pageCount ? selEnd : dragPinchManager.allText.length()));
                     }
                     return sb.toString();
