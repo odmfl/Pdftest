@@ -135,7 +135,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         searchView.setOnCloseListener(new SearchView.OnCloseListener() {
             @Override
             public boolean onClose() {
-                pdfView.setIsSearching(false);
+                pdfView.clearSearch();
                 serchPage = -1;
                 currentResultIndex = 0;
                 searchResultPages.clear();
@@ -348,6 +348,11 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         Log.e(TAG, "modDate = " + meta.getModDate());
 
         printBookmarksTree(pdfView.getTableOfContents(), "-");
+        
+        // Clear search state when new document is loaded
+        searchResultPages.clear();
+        currentResultIndex = 0;
+        serchPage = -1;
 
     }
 
@@ -406,6 +411,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         // Get all pages with search results
         if (pdfView.searchRecords.isEmpty()) {
             search_controller.setVisibility(View.GONE);
+            search_result_count.setText("");
             Toast.makeText(PDFViewActivity.this, R.string.search_no_results, Toast.LENGTH_SHORT).show();
         } else {
             // Sort the page numbers

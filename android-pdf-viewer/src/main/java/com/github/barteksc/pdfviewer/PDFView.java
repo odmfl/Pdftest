@@ -464,6 +464,15 @@ public class PDFView extends RelativeLayout {
         task = null;
     }
 
+    public void clearSearch() {
+        closeTask();
+        searchRecords.clear();
+        setIsSearching(false);
+        if (selectionPaintView != null) {
+            selectionPaintView.invalidate();
+        }
+    }
+
     public void search(String text) {
         searchRecords.clear();
         setIsSearching(true);
