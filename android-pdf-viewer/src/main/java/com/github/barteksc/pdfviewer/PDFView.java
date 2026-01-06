@@ -140,6 +140,7 @@ public class PDFView extends RelativeLayout {
     private double sin = 0;//Math.sin(0);
     float drawableScale = 1.f;
     OnSelection onSelection;
+    OnSearchListener onSearchListener;
     public final HashMap<Integer, SearchRecord> searchRecords = new HashMap<>();
 
     public void setIsSearching(boolean isSearching) {
@@ -149,6 +150,10 @@ public class PDFView extends RelativeLayout {
 
     public void setOnSelection(OnSelection onSelection) {
         this.onSelection = onSelection;
+    }
+
+    public void setOnSearchListener(OnSearchListener listener) {
+        this.onSearchListener = listener;
     }
 
     public void setMatrixArray(float[] array, float f0, float f1, float f2, float f3, float f4, float f5, float f6, float f7) {
@@ -476,7 +481,11 @@ public class PDFView extends RelativeLayout {
     public void endSearch(ArrayList<SearchRecord> arr) {
 
         selectionPaintView.invalidate();
-        // searchHandler.endSearch(arr);
+        
+        // Notify listener if set
+        if (onSearchListener != null) {
+            onSearchListener.onSearchCompleted(searchRecords.size());
+        }
     }
 
     public void setSelectionAtPage(int pageIdx, int st, int ed) {
@@ -2210,6 +2219,10 @@ public class PDFView extends RelativeLayout {
 
     public interface OnSelection {
         void onSelection(boolean hasSelection);
+    }
+
+    public interface OnSearchListener {
+        void onSearchCompleted(int resultCount);
     }
 
     public interface UserTouchCallback {

@@ -212,6 +212,13 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 }
             }
         });
+        
+        pdfView.setOnSearchListener(new PDFView.OnSearchListener() {
+            @Override
+            public void onSearchCompleted(int resultCount) {
+                updateSearchResults();
+            }
+        });
         pdfView.setSelectionPaintView(sv);
         pdfView.setBackgroundColor(Color.LTGRAY);
         if (uri != null) {
@@ -388,14 +395,6 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         
         Toast.makeText(PDFViewActivity.this, R.string.searching, Toast.LENGTH_SHORT).show();
         pdfView.search(s);
-        
-        // Wait for search to complete and update UI
-        pdfView.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                updateSearchResults();
-            }
-        }, 500);
         
         return false;
     }
