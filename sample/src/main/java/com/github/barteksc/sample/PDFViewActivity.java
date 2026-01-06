@@ -208,9 +208,11 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                     int page = searchResultPages.get(currentResultIndex);
                     pdfView.jumpTo(page);
                     searchPage = page;
+                    
+                    // Set the active search result for highlighting (always first result on the page for now)
+                    pdfView.setActiveSearchResult(page, 0);
+                    
                     updateSearchResultCount();
-                    // Refresh highlights
-                    pdfView.redrawSel();
                 }
             }
         });
@@ -227,9 +229,11 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                     int page = searchResultPages.get(currentResultIndex);
                     pdfView.jumpTo(page);
                     searchPage = page;
+                    
+                    // Set the active search result for highlighting (always first result on the page for now)
+                    pdfView.setActiveSearchResult(page, 0);
+                    
                     updateSearchResultCount();
-                    // Refresh highlights
-                    pdfView.redrawSel();
                 }
             }
         });
@@ -464,10 +468,13 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
             
             search_controller.setVisibility(View.VISIBLE);
             
-            // Jump to first result
+            // Jump to first result and set it as active
             if (!searchResultPages.isEmpty()) {
                 searchPage = searchResultPages.get(0);
                 pdfView.jumpTo(searchPage);
+                
+                // Set the first result on the first page as active
+                pdfView.setActiveSearchResult(searchPage, 0);
             }
             
             updateSearchResultCount();

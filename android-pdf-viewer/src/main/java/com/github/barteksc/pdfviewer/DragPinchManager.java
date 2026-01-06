@@ -293,7 +293,9 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
                         int st = pageBreakIterator.previous();
                         try {
                             ret = allText.substring(st, ed);
-                            pdfView.setSelectionAtPage(pageIndex, st, ed);
+                            // FIXED: Use 'page' (user page) instead of 'pageIndex' (document page)
+                            // This ensures text selection works correctly on all pages
+                            pdfView.setSelectionAtPage(page, st, ed);
 //                    Toast.makeText(pdfView.getContext(), String.valueOf(ret), Toast.LENGTH_SHORT).show();
                             return true;
                         } catch (Exception e) {

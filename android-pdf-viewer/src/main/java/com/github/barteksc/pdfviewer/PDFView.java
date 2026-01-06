@@ -142,6 +142,11 @@ public class PDFView extends RelativeLayout {
     OnSelection onSelection;
     OnSearchListener onSearchListener;
     public final HashMap<Integer, SearchRecord> searchRecords = new HashMap<>();
+    
+    /** The page number of the currently active search result (-1 if none) */
+    public int currentSearchPage = -1;
+    /** The index of the currently active search result within the page's data list (-1 if none) */
+    public int currentSearchResultIndex = -1;
 
     public void setIsSearching(boolean isSearching) {
         this.isSearching = isSearching;
@@ -473,10 +478,25 @@ public class PDFView extends RelativeLayout {
     public void clearSearch() {
         closeTask();
         searchRecords.clear();
+        currentSearchPage = -1;
+        currentSearchResultIndex = -1;
         setIsSearching(false);
         if (selectionPaintView != null) {
             selectionPaintView.invalidate();
         }
+    }
+    
+    /**
+     * Set the currently active search result for highlighting.
+     * This will cause the specified result to be highlighted differently (e.g., orange instead of yellow).
+     * 
+     * @param page The page number containing the active result
+     * @param resultIndex The index of the result within that page's search results (0-based)
+     */
+    public void setActiveSearchResult(int page, int resultIndex) {
+        this.currentSearchPage = page;
+        this.currentSearchResultIndex = resultIndex;
+        redrawSel();
     }
 
     /**
@@ -839,11 +859,29 @@ public class PDFView extends RelativeLayout {
         this.enableSwipe = enableSwipe;
     }
 
+    /**
+     * Convert source (PDF) rectangle coordinates to view (screen) coordinates for a specific page.
+     * This is used for rendering search highlights on any page.
+     * 
+     * @param sRect Source rectangle in PDF coordinates
+     * @param vTarget Target rectangle in view coordinates (output)
+     * @param currentPage The page number this rectangle belongs to
+     */
     void sourceToViewRectFFSearch(@NotNull RectF sRect, @NotNull RectF vTarget, int currentPage) {
-
-
-        int pageX = (int) pdfFile.getSecondaryPageOffset(currentPage, getZoom());
-        int pageY = (int) pdfFile.getPageOffset(currentPage, getZoom());
+        sourceToViewRectFFForPage(sRect, vTarget, currentPage);
+    }
+    
+    /**
+     * Convert source (PDF) rectangle coordinates to view (screen) coordinates for a specific page.
+     * This is used for rendering selection highlights on multi-page documents.
+     * 
+     * @param sRect Source rectangle in PDF coordinates
+     * @param vTarget Target rectangle in view coordinates (output)
+     * @param page The page number this rectangle belongs to
+     */
+    void sourceToViewRectFFForPage(@NotNull RectF sRect, @NotNull RectF vTarget, int page) {
+        int pageX = (int) pdfFile.getSecondaryPageOffset(page, getZoom());
+        int pageY = (int) pdfFile.getPageOffset(page, getZoom());
         vTarget.set(
                 sRect.left * getZoom() + ((pageX)) + currentXOffset,
                 sRect.top * getZoom() + ((pageY)) + currentYOffset,

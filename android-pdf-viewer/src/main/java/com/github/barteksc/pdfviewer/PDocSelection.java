@@ -38,6 +38,7 @@ public class PDocSelection extends View {
     Paint rectPaint;
     Paint rectFramePaint;
     Paint rectHighlightPaint;
+    Paint rectActiveHighlightPaint;  // Orange paint for active search result
 
     /**
      * Small Canvas for magnifier.
@@ -86,8 +87,11 @@ public class PDocSelection extends View {
         //rectPaint.setColor(0xffffff00);
         rectHighlightPaint = new Paint();
         rectHighlightPaint.setColor(ContextCompat.getColor(getContext(), R.color.highlight_color));
+        rectActiveHighlightPaint = new Paint();
+        rectActiveHighlightPaint.setColor(ContextCompat.getColor(getContext(), R.color.active_highlight_color));
         rectPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));
         rectHighlightPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));
+        rectActiveHighlightPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));
         rectFramePaint = new Paint();
         rectFramePaint.setColor(0xccc7ab21);
         rectFramePaint.setStyle(Paint.Style.STROKE);
@@ -234,6 +238,7 @@ public class PDocSelection extends View {
     /**
      * Draw search highlights for all visible pages with search results.
      * Uses a simple, direct coordinate transformation approach.
+     * Active search result is highlighted in orange, others in yellow.
      */
     private void drawSearchHighlights(Canvas canvas, RectF tempRect) {
         // Get all pages with search results (current page and adjacent pages)
@@ -248,12 +253,19 @@ public class PDocSelection extends View {
                 ArrayList<SearchRecordItem> data = (ArrayList<SearchRecordItem>) record.data;
                 
                 if (data != null) {
+                    // Determine if this page contains the active search result
+                    boolean isActivePage = (page == pDocView.currentSearchPage);
+                    
                     // Draw highlights for each search result on this page
                     int dataSize = data.size();
                     for (int j = 0; j < dataSize; j++) {
                         try {
                             SearchRecordItem item = data.get(j);
                             if (item == null) continue;
+                            
+                            // Determine if this is the active result
+                            boolean isActiveResult = isActivePage && (j == pDocView.currentSearchResultIndex);
+                            Paint paintToUse = isActiveResult ? rectActiveHighlightPaint : rectHighlightPaint;
                             
                             RectF[] rects = item.rects;
                             if (rects != null) {
@@ -262,8 +274,8 @@ public class PDocSelection extends View {
                                     // Convert PDF coordinates to view coordinates
                                     pDocView.sourceToViewRectFFSearch(sourceRect, tempRect, page);
                                     
-                                    // Draw the highlight directly - no complex matrix transformation needed
-                                    canvas.drawRect(tempRect, rectHighlightPaint);
+                                    // Draw the highlight directly - use orange for active, yellow for others
+                                    canvas.drawRect(tempRect, paintToUse);
                                 }
                             }
                         } catch (IndexOutOfBoundsException e) {
@@ -279,28 +291,32 @@ public class PDocSelection extends View {
     
     /**
      * Draw text selection highlights and handles.
-     * Uses the same matrix transformation as before for consistency.
+     * Uses proper page-aware coordinate transformation for multi-page selections.
      */
     private void drawTextSelection(Canvas canvas, RectF VR, Matrix matrix) {
-        // Draw left handle
-        pDocView.sourceToViewRectFF(pDocView.handleLeftPos, VR);
+        // Draw left handle (always on the start page)
+        pDocView.sourceToViewRectFFForPage(pDocView.handleLeftPos, VR, pDocView.selPageSt);
         float left = VR.left + drawableDeltaW;
         pDocView.handleLeft.setBounds((int) (left - drawableWidth), (int) VR.bottom, (int) left, (int) (VR.bottom + drawableHeight));
         pDocView.handleLeft.draw(canvas);
         
-        // Draw right handle
-        pDocView.sourceToViewRectFF(pDocView.handleRightPos, VR);
+        // Draw right handle (always on the end page)
+        pDocView.sourceToViewRectFFForPage(pDocView.handleRightPos, VR, pDocView.selPageEd);
         left = VR.right - drawableDeltaW;
         pDocView.handleRight.setBounds((int) left, (int) VR.bottom, (int) (left + drawableWidth), (int) (VR.bottom + drawableHeight));
         pDocView.handleRight.draw(canvas);
         
         pDocView.sourceToViewCoord(pDocView.sCursorPos, vCursorPos);
         
-        // Draw selection highlight rectangles
+        // Draw selection highlight rectangles for each page
         for (int i = 0; i < rectPoolSize; i++) {
+            // Calculate which page this rectangle pool corresponds to
+            int page = pDocView.selPageSt + i;
+            
             ArrayList<RectF> rectPage = rectPool.get(i);
             for (RectF rI : rectPage) {
-                pDocView.sourceToViewRectFF(rI, VR);
+                // Use the page-specific coordinate transformation
+                pDocView.sourceToViewRectFFForPage(rI, VR, page);
                 matrix.reset();
                 int bmWidth = (int) rI.width();
                 int bmHeight = (int) rI.height();
