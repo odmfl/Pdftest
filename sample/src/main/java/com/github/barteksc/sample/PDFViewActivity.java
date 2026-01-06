@@ -504,12 +504,15 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 // Set the clip to the clipboard
                 clipboard.setPrimaryClip(clip);
                 
-                // Show confirmation toast with character count
-                String message = getString(R.string.text_copied) + " (" + selectedText.length() + " chars)";
+                // Show confirmation toast with character count using string resource
+                String message = getString(R.string.text_copied_with_count, selectedText.length());
                 Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
                 
-                // Log for debugging
-                Log.d(TAG, "Copied text: " + selectedText.substring(0, Math.min(50, selectedText.length())) + "...");
+                // Log for debugging (only if debug logging is enabled)
+                if (Log.isLoggable(TAG, Log.DEBUG)) {
+                    String preview = selectedText.substring(0, Math.min(50, selectedText.length()));
+                    Log.d(TAG, "Copied text: " + preview + "...");
+                }
             } else {
                 Toast.makeText(this, R.string.no_text_selected, Toast.LENGTH_SHORT).show();
             }
