@@ -160,7 +160,8 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
 
             long pagePtr = pdfFile.pdfDocument.mNativePagesPtr.get(pageIndex);//if it will produce nullPointerException catch will return -1 ...
             Log.e("pageIndex", String.valueOf(pageIndex));
-            long tid = prepareText();
+            // FIXED: Use the calculated page instead of calling prepareText() without parameters
+            long tid = prepareText(page);
             if (pdfView.isNotCurrentPage(tid)) {
                 return -1;
             }
@@ -218,7 +219,8 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
         int pageIndex = pdfFile.documentPage(page);
         long pagePtr = pdfFile.pdfDocument.mNativePagesPtr.get(pageIndex);
         Log.e("pageIndex", String.valueOf(pageIndex));
-        long tid = prepareText();
+        // FIXED: Use the current page instead of calling prepareText() without parameters
+        long tid = prepareText(page);
         if (pdfView.isNotCurrentPage(tid)) {
             return -1;
         }
@@ -275,7 +277,8 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
             int pageIndex = pdfFile.documentPage(page);
             if (pdfFile.pdfDocument.hasPage(pageIndex) && pdfFile.pdfDocument.mNativePagesPtr.size() > 0) {
                 long pagePtr = pdfFile.pdfDocument.mNativePagesPtr.get(pageIndex);
-                long tid = prepareText();
+                // FIXED: Prepare text for the specific page that was tapped, not the "current" page
+                long tid = prepareText(page);
                 currentTextPtr = tid;
                 if (tid != 0) {
                     //int charIdx = pdfiumCore.nativeGetCharIndexAtPos(tid, posX, posY, 10.0, 10.0);
@@ -322,7 +325,8 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
 
         //CMN.Log("getTextRects", selSt, selEd);
 
-        long tid = prepareText();
+        // FIXED: Use the calculated page instead of calling prepareText() without parameters
+        long tid = prepareText(page);
         if (pdfView.isNotCurrentPage(tid)) {
             return;
         }

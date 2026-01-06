@@ -219,95 +219,105 @@ public class PDocSelection extends View {
             RectF VR = tmpPosRct;
             Matrix matrix = pDocView.matrix;
 
+            // Draw search highlights for all pages with results
             if (pDocView.isSearching && pDocView.pdfFile != null) {
-                // SearchRecord record =  pDocView.searchRecords.get(pDocView.getCurrentPage());
-                ArrayList<SearchRecord> searchRecordList = getSearchRecords();
+                drawSearchHighlights(canvas, VR);
+            }
 
-                for (SearchRecord record : searchRecordList) {
-                    if (record != null) {
-                        pDocView.getAllMatchOnPage(record);
-                        int page = record.currentPage != -1 ? record.currentPage : pDocView.currentPage;
-                        ArrayList<SearchRecordItem> data = (ArrayList<SearchRecordItem>) record.data;
-                        if (data != null) {
-                            // Store size to avoid repeated calls and protect against concurrent modification
-                            int dataSize = data.size();
-                            for (int j = 0; j < dataSize; j++) {
-                                try {
-                                    SearchRecordItem item = data.get(j);
-                                    if (item == null) continue;
-                                    RectF[] rects = item.rects;
-                                    if (rects != null) {
-                                        for (RectF rI : rects) {
-                                            pDocView.sourceToViewRectFFSearch(rI, VR, page);
-                                            matrix.reset();
-                                            int bmWidth = (int) rI.width();
-                                            int bmHeight = (int) rI.height();
-                                            pDocView.setMatrixArray(pDocView.srcArray, 0, 0, bmWidth, 0, bmWidth, bmHeight, 0, bmHeight);
-                                            pDocView.setMatrixArray(pDocView.dstArray, VR.left, VR.top, VR.right, VR.top, VR.right, VR.bottom, VR.left, VR.bottom);
+            // Draw text selection highlights and handles
+            if (pDocView.hasSelection && pDocView.pdfFile != null) {
+                drawTextSelection(canvas, VR, matrix);
+            }
+        } catch (Exception e) {
+            Log.e("PDF_TEXT_SELECTION", "onDraw: ", e);
+        }
+    }
 
-                                            matrix.setPolyToPoly(pDocView.srcArray, 0, pDocView.dstArray, 0, 4);
-                                            matrix.postRotate(0, pDocView.getScreenWidth(), pDocView.getScreenHeight());
-
-                                            canvas.save();
-                                            canvas.concat(matrix);
-                                            VR.set(0, 0, bmWidth, bmHeight);
-                                            canvas.drawRect(VR, rectHighlightPaint);
-                                            canvas.restore();
-                                        }
-                                    }
-                                } catch (IndexOutOfBoundsException e) {
-                                    // Handle concurrent modification gracefully
-                                    Log.e("PDF_TEXT_SELECTION", "Data modified during rendering", e);
-                                    break;
+    /**
+     * Draw search highlights for all visible pages with search results.
+     * Uses a simple, direct coordinate transformation approach.
+     */
+    private void drawSearchHighlights(Canvas canvas, RectF tempRect) {
+        // Get all pages with search results (current page and adjacent pages)
+        ArrayList<SearchRecord> searchRecordList = getSearchRecords();
+        
+        for (SearchRecord record : searchRecordList) {
+            if (record != null) {
+                // Load the text data for this page if not already loaded
+                pDocView.getAllMatchOnPage(record);
+                
+                int page = record.currentPage != -1 ? record.currentPage : pDocView.currentPage;
+                ArrayList<SearchRecordItem> data = (ArrayList<SearchRecordItem>) record.data;
+                
+                if (data != null) {
+                    // Draw highlights for each search result on this page
+                    int dataSize = data.size();
+                    for (int j = 0; j < dataSize; j++) {
+                        try {
+                            SearchRecordItem item = data.get(j);
+                            if (item == null) continue;
+                            
+                            RectF[] rects = item.rects;
+                            if (rects != null) {
+                                // Draw each highlight rectangle
+                                for (RectF sourceRect : rects) {
+                                    // Convert PDF coordinates to view coordinates
+                                    pDocView.sourceToViewRectFFSearch(sourceRect, tempRect, page);
+                                    
+                                    // Draw the highlight directly - no complex matrix transformation needed
+                                    canvas.drawRect(tempRect, rectHighlightPaint);
                                 }
                             }
+                        } catch (IndexOutOfBoundsException e) {
+                            // Handle concurrent modification gracefully
+                            Log.e("PDF_TEXT_SELECTION", "Search data modified during rendering", e);
+                            break;
                         }
                     }
                 }
             }
-
-            if (pDocView.hasSelection && pDocView.pdfFile != null) {
-                pDocView.sourceToViewRectFF(pDocView.handleLeftPos, VR);
-                float left = VR.left + drawableDeltaW;
-                pDocView.handleLeft.setBounds((int) (left - drawableWidth), (int) VR.bottom, (int) left, (int) (VR.bottom + drawableHeight));
-                pDocView.handleLeft.draw(canvas);
-                //canvas.drawRect(pDocView.handleLeft.getBounds(), rectPaint);
-
-                pDocView.sourceToViewRectFF(pDocView.handleRightPos, VR);
-                left = VR.right - drawableDeltaW;
-                pDocView.handleRight.setBounds((int) left, (int) VR.bottom, (int) (left + drawableWidth), (int) (VR.bottom + drawableHeight));
-                pDocView.handleRight.draw(canvas);
-
-                // canvas.drawRect(pDocView.handleRight.getBounds(), rectPaint);
-                pDocView.sourceToViewCoord(pDocView.sCursorPos, vCursorPos);
-
-                for (int i = 0; i < rectPoolSize; i++) {
-
-                    ArrayList<RectF> rectPage = rectPool.get(i);
-                    for (RectF rI : rectPage) {
-                        pDocView.sourceToViewRectFF(rI, VR);
-                        matrix.reset();
-                        int bmWidth = (int) rI.width();
-                        int bmHeight = (int) rI.height();
-                        pDocView.setMatrixArray(pDocView.srcArray, 0, 0, bmWidth, 0, bmWidth, bmHeight, 0, bmHeight);
-                        pDocView.setMatrixArray(pDocView.dstArray, VR.left, VR.top, VR.right, VR.top, VR.right, VR.bottom, VR.left, VR.bottom);
-
-                        matrix.setPolyToPoly(pDocView.srcArray, 0, pDocView.dstArray, 0, 4);
-                        matrix.postRotate(0, pDocView.getScreenWidth(), pDocView.getScreenHeight());
-
-                        canvas.save();
-                        canvas.concat(matrix);
-                        VR.set(0, 0, bmWidth, bmHeight);
-                        canvas.drawRect(VR, rectPaint);
-                        canvas.restore();
-
-
-                    }
-                }
-
+        }
+    }
+    
+    /**
+     * Draw text selection highlights and handles.
+     * Uses the same matrix transformation as before for consistency.
+     */
+    private void drawTextSelection(Canvas canvas, RectF VR, Matrix matrix) {
+        // Draw left handle
+        pDocView.sourceToViewRectFF(pDocView.handleLeftPos, VR);
+        float left = VR.left + drawableDeltaW;
+        pDocView.handleLeft.setBounds((int) (left - drawableWidth), (int) VR.bottom, (int) left, (int) (VR.bottom + drawableHeight));
+        pDocView.handleLeft.draw(canvas);
+        
+        // Draw right handle
+        pDocView.sourceToViewRectFF(pDocView.handleRightPos, VR);
+        left = VR.right - drawableDeltaW;
+        pDocView.handleRight.setBounds((int) left, (int) VR.bottom, (int) (left + drawableWidth), (int) (VR.bottom + drawableHeight));
+        pDocView.handleRight.draw(canvas);
+        
+        pDocView.sourceToViewCoord(pDocView.sCursorPos, vCursorPos);
+        
+        // Draw selection highlight rectangles
+        for (int i = 0; i < rectPoolSize; i++) {
+            ArrayList<RectF> rectPage = rectPool.get(i);
+            for (RectF rI : rectPage) {
+                pDocView.sourceToViewRectFF(rI, VR);
+                matrix.reset();
+                int bmWidth = (int) rI.width();
+                int bmHeight = (int) rI.height();
+                pDocView.setMatrixArray(pDocView.srcArray, 0, 0, bmWidth, 0, bmWidth, bmHeight, 0, bmHeight);
+                pDocView.setMatrixArray(pDocView.dstArray, VR.left, VR.top, VR.right, VR.top, VR.right, VR.bottom, VR.left, VR.bottom);
+                
+                matrix.setPolyToPoly(pDocView.srcArray, 0, pDocView.dstArray, 0, 4);
+                matrix.postRotate(0, pDocView.getScreenWidth(), pDocView.getScreenHeight());
+                
+                canvas.save();
+                canvas.concat(matrix);
+                VR.set(0, 0, bmWidth, bmHeight);
+                canvas.drawRect(VR, rectPaint);
+                canvas.restore();
             }
-        } catch (Exception e) {
-            Log.e("PDF_TEXT_SELECTION", "onDraw: ", e);
         }
     }
 
