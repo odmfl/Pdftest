@@ -88,7 +88,7 @@ public class PDocSelection extends View {
         rectHighlightPaint = new Paint();
         rectHighlightPaint.setColor(ContextCompat.getColor(getContext(), R.color.highlight_color));
         rectActiveHighlightPaint = new Paint();
-        rectActiveHighlightPaint.setColor(0xAAFF8800);  // Semi-transparent orange
+        rectActiveHighlightPaint.setColor(ContextCompat.getColor(getContext(), R.color.active_highlight_color));
         rectPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));
         rectHighlightPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));
         rectActiveHighlightPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));

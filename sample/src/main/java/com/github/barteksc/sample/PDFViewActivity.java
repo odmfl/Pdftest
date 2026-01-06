@@ -109,8 +109,6 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     int searchPage = -1;
     int currentResultIndex = 0;
     List<Integer> searchResultPages = new ArrayList<>();
-    /** Maps each page to the index of the result on that page for the flattened result list */
-    private HashMap<Integer, Integer> pageToResultIndexMap = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="highlight_color">#AAFFFF00</color>
+    <color name="active_highlight_color">#AAFF8800</color>
     <color name="selection_color">#66109afe</color>
 </resources>
