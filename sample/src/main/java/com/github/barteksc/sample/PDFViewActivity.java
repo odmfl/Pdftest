@@ -489,6 +489,9 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         try {
             String selectedText = pdfView.getSelection();
             if (selectedText != null && !selectedText.trim().isEmpty()) {
+                // Store length once to avoid repeated calls and ensure consistency
+                final int textLength = selectedText.length();
+                
                 // Get the clipboard manager
                 ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                 
@@ -505,15 +508,20 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 clipboard.setPrimaryClip(clip);
                 
                 // Show confirmation toast with character count using string resource
-                String message = getString(R.string.text_copied_with_count, selectedText.length());
+                String message = getString(R.string.text_copied_with_count, textLength);
                 Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
                 
                 // Log for debugging (only if debug logging is enabled and text has content)
-                if (Log.isLoggable(TAG, Log.DEBUG) && selectedText.length() > 0) {
-                    int previewLength = Math.min(50, selectedText.length());
-                    String preview = selectedText.substring(0, previewLength);
-                    String suffix = selectedText.length() > 50 ? "..." : "";
-                    Log.d(TAG, "Copied text: " + preview + suffix);
+                if (Log.isLoggable(TAG, Log.DEBUG) && textLength > 0) {
+                    try {
+                        int previewLength = Math.min(50, textLength);
+                        String preview = selectedText.substring(0, previewLength);
+                        String suffix = textLength > 50 ? "..." : "";
+                        Log.d(TAG, "Copied text: " + preview + suffix);
+                    } catch (StringIndexOutOfBoundsException e) {
+                        // Handle rare concurrent modification case
+                        Log.d(TAG, "Copied text (length: " + textLength + ")");
+                    }
                 }
             } else {
                 Toast.makeText(this, R.string.no_text_selected, Toast.LENGTH_SHORT).show();

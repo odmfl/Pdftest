@@ -229,26 +229,36 @@ public class PDocSelection extends View {
                         int page = record.currentPage != -1 ? record.currentPage : pDocView.currentPage;
                         ArrayList<SearchRecordItem> data = (ArrayList<SearchRecordItem>) record.data;
                         if (data != null) {
-                            for (int j = 0, len = data.size(); j < len; j++) {
-                                RectF[] rects = data.get(j).rects;
-                                if (rects != null) {
-                                    for (RectF rI : rects) {
-                                        pDocView.sourceToViewRectFFSearch(rI, VR, page);
-                                        matrix.reset();
-                                        int bmWidth = (int) rI.width();
-                                        int bmHeight = (int) rI.height();
-                                        pDocView.setMatrixArray(pDocView.srcArray, 0, 0, bmWidth, 0, bmWidth, bmHeight, 0, bmHeight);
-                                        pDocView.setMatrixArray(pDocView.dstArray, VR.left, VR.top, VR.right, VR.top, VR.right, VR.bottom, VR.left, VR.bottom);
+                            // Store size to avoid repeated calls and protect against concurrent modification
+                            int dataSize = data.size();
+                            for (int j = 0; j < dataSize; j++) {
+                                try {
+                                    SearchRecordItem item = data.get(j);
+                                    if (item == null) continue;
+                                    RectF[] rects = item.rects;
+                                    if (rects != null) {
+                                        for (RectF rI : rects) {
+                                            pDocView.sourceToViewRectFFSearch(rI, VR, page);
+                                            matrix.reset();
+                                            int bmWidth = (int) rI.width();
+                                            int bmHeight = (int) rI.height();
+                                            pDocView.setMatrixArray(pDocView.srcArray, 0, 0, bmWidth, 0, bmWidth, bmHeight, 0, bmHeight);
+                                            pDocView.setMatrixArray(pDocView.dstArray, VR.left, VR.top, VR.right, VR.top, VR.right, VR.bottom, VR.left, VR.bottom);
 
-                                        matrix.setPolyToPoly(pDocView.srcArray, 0, pDocView.dstArray, 0, 4);
-                                        matrix.postRotate(0, pDocView.getScreenWidth(), pDocView.getScreenHeight());
+                                            matrix.setPolyToPoly(pDocView.srcArray, 0, pDocView.dstArray, 0, 4);
+                                            matrix.postRotate(0, pDocView.getScreenWidth(), pDocView.getScreenHeight());
 
-                                        canvas.save();
-                                        canvas.concat(matrix);
-                                        VR.set(0, 0, bmWidth, bmHeight);
-                                        canvas.drawRect(VR, rectHighlightPaint);
-                                        canvas.restore();
+                                            canvas.save();
+                                            canvas.concat(matrix);
+                                            VR.set(0, 0, bmWidth, bmHeight);
+                                            canvas.drawRect(VR, rectHighlightPaint);
+                                            canvas.restore();
+                                        }
                                     }
+                                } catch (IndexOutOfBoundsException e) {
+                                    // Handle concurrent modification gracefully
+                                    Log.e("PDF_TEXT_SELECTION", "Data modified during rendering", e);
+                                    break;
                                 }
                             }
                         }
