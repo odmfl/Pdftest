@@ -2,4 +2,8 @@
     <string name="app_name">AndroidPdfViewer demo</string>
     <string name="pick_file">Pick file</string>
     <string name="toast_pick_file_error">Unable to pick file. Check status of file manager.</string>
+    <string name="search_no_results">No results found</string>
+    <string name="search_result_format">%1$d of %2$d</string>
+    <string name="search_results_found">%d results found</string>
+    <string name="searching">Searching…</string>
 </resources>

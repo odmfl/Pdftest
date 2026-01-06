@@ -140,6 +140,7 @@ public class PDFView extends RelativeLayout {
     private double sin = 0;//Math.sin(0);
     float drawableScale = 1.f;
     OnSelection onSelection;
+    OnSearchListener onSearchListener;
     public final HashMap<Integer, SearchRecord> searchRecords = new HashMap<>();
 
     public void setIsSearching(boolean isSearching) {
@@ -149,6 +150,10 @@ public class PDFView extends RelativeLayout {
 
     public void setOnSelection(OnSelection onSelection) {
         this.onSelection = onSelection;
+    }
+
+    public void setOnSearchListener(OnSearchListener listener) {
+        this.onSearchListener = listener;
     }
 
     public void setMatrixArray(float[] array, float f0, float f1, float f2, float f3, float f4, float f5, float f6, float f7) {
@@ -452,6 +457,9 @@ public class PDFView extends RelativeLayout {
 
     int lastSz = 0;
 
+    /**
+     * Close the current search task if running
+     */
     public void closeTask() {
         if (task != null) {
             task.abort();
@@ -459,6 +467,25 @@ public class PDFView extends RelativeLayout {
         task = null;
     }
 
+    /**
+     * Clear all search results and stop searching
+     */
+    public void clearSearch() {
+        closeTask();
+        searchRecords.clear();
+        setIsSearching(false);
+        if (selectionPaintView != null) {
+            selectionPaintView.invalidate();
+        }
+    }
+
+    /**
+     * Search for text in the PDF document.
+     * Results will be highlighted on the pages.
+     * Use setOnSearchListener to be notified when search completes.
+     * 
+     * @param text The text to search for (case-insensitive by default)
+     */
     public void search(String text) {
         searchRecords.clear();
         setIsSearching(true);
@@ -470,13 +497,17 @@ public class PDFView extends RelativeLayout {
     }
 
     public void startSearch(ArrayList<SearchRecord> arr, String key, int flag) {
-
+        // Called when search task starts - can be used for initialization
     }
 
     public void endSearch(ArrayList<SearchRecord> arr) {
-
+        // Redraw the selection view to show highlights
         selectionPaintView.invalidate();
-        // searchHandler.endSearch(arr);
+        
+        // Notify listener if set
+        if (onSearchListener != null) {
+            onSearchListener.onSearchCompleted(searchRecords.size());
+        }
     }
 
     public void setSelectionAtPage(int pageIdx, int st, int ed) {
@@ -568,17 +599,24 @@ public class PDFView extends RelativeLayout {
 
     }
 
+    /**
+     * Get all matching text occurrences on a page with their bounding rectangles.
+     * This is used for highlighting the search results.
+     * 
+     * @param record The search record for the page
+     */
     public void getAllMatchOnPage(SearchRecord record) {
         int page = record.currentPage != -1 ? record.currentPage : currentPage;
         long tid = dragPinchManager.prepareText(page);
         if (record.data == null && tid != -1) {
-            //CMN.rt();
             ArrayList<SearchRecordItem> data = new ArrayList<>();
             record.data = data;
             long keyStr = task.getKeyStr();
             if (keyStr != 0) {
+                // Start the search on this page
                 long searchHandle = pdfiumCore.nativeFindTextPageStart(tid, keyStr, task.flag, record.findStart);
                 if (searchHandle != 0) {
+                    // Iterate through all matches on the page
                     while (pdfiumCore.nativeFindTextPageNext(searchHandle)) {
                         int st = pdfiumCore.nativeGetFindIdx(searchHandle);
                         int ed = pdfiumCore.nativeGetFindLength(searchHandle);
@@ -587,7 +625,6 @@ public class PDFView extends RelativeLayout {
                     pdfiumCore.nativeFindTextPageEnd(searchHandle);
                 }
             }
-            //CMN.pt("getAllSearchedHighlightRects：");
         }
     }
 
@@ -625,9 +662,17 @@ public class PDFView extends RelativeLayout {
         return selLineRects;
     }
 
+    /**
+     * Get the bounding rectangles for a search result item.
+     * This is used to highlight the matched text on the page.
+     * 
+     * @param data List to add the SearchRecordItem to
+     * @param st Start index of the matched text
+     * @param ed End index of the matched text (length)
+     * @param page Page index
+     */
     private void getRectsForRecordItem(ArrayList<SearchRecordItem> data, int st, int ed, int page) {
 
-        // int page = currentPage;//pdfFile.getPageAtOffset(isSwipeVertical() ? mappedY : mappedX, getZoom());
         long tid = pdfFile.pdfDocument.mNativeTextPtr.get(page);
         long pid = pdfFile.pdfDocument.mNativePagesPtr.get(page);
         SizeF size = pdfFile.getPageSize(page);
@@ -832,6 +877,15 @@ public class PDFView extends RelativeLayout {
         );
     }
 
+    /**
+     * Search for text on a specific page.
+     * This method is called for each page by the search task.
+     * 
+     * @param key The search query
+     * @param pageIdx The page index to search
+     * @param flag Search flags (0 = case-insensitive, 1 = case-sensitive)
+     * @return SearchRecord if found, null otherwise
+     */
     public SearchRecord findPageCached(String key, int pageIdx, int flag) {
 
         long tid = dragPinchManager.loadText(pageIdx);
@@ -2210,6 +2264,10 @@ public class PDFView extends RelativeLayout {
 
     public interface OnSelection {
         void onSelection(boolean hasSelection);
+    }
+
+    public interface OnSearchListener {
+        void onSearchCompleted(int resultCount);
     }
 
     public interface UserTouchCallback {

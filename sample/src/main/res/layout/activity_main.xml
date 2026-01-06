@@ -40,5 +40,15 @@
             android:layout_height="wrap_content"
             android:src="@android:drawable/arrow_up_float" />
 
+        <TextView
+            android:id="@+id/search_result_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:text="" />
+
     </LinearLayout>
 </FrameLayout>

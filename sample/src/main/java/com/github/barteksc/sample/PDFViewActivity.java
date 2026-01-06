@@ -31,6 +31,7 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.SearchView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.barteksc.pdfviewer.PDFView;
@@ -47,7 +48,9 @@ import org.androidannotations.annotations.NonConfigurationInstance;
 import org.androidannotations.annotations.OnActivityResult;
 import org.androidannotations.annotations.ViewById;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -80,6 +83,8 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     ImageButton prev;
     @ViewById
     ImageButton next;
+    @ViewById
+    TextView search_result_count;
 
     @NonConfigurationInstance
     Uri uri;
@@ -89,7 +94,9 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
     String pdfFileName;
 
-    int serchPage = -1;
+    int searchPage = -1;
+    int currentResultIndex = 0;
+    List<Integer> searchResultPages = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,8 +135,10 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         searchView.setOnCloseListener(new SearchView.OnCloseListener() {
             @Override
             public boolean onClose() {
-                pdfView.setIsSearching(false);
-                serchPage = -1;
+                pdfView.clearSearch();
+                searchPage = -1;
+                currentResultIndex = 0;
+                searchResultPages.clear();
                 search_controller.setVisibility(View.GONE);
                 return false;
             }
@@ -160,55 +169,60 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         }
     }
 
-
-    public int getNext(List<Object> myList) {
-        int idx = myList.indexOf(serchPage);
-        if (idx < 0 || idx + 1 == myList.size()) return 0;
-        return (int) myList.get(idx + 1);
-    }
-
-    public int getPrevious(List<Object> myList) {
-        int idx = myList.indexOf(serchPage);
-        if (idx <= 0) return 0;
-        return (int) myList.get(idx - 1);
+    /**
+     * Update the search result count display to show current result position
+     */
+    public void updateSearchResultCount() {
+        if (searchResultPages.isEmpty()) {
+            search_result_count.setText(getString(R.string.search_no_results));
+        } else {
+            String resultText = getString(R.string.search_result_format, 
+                    currentResultIndex + 1, searchResultPages.size());
+            search_result_count.setText(resultText);
+        }
     }
 
     @AfterViews
     void afterViews() {
+        // Previous search result button - cycles backwards through search results
         prev.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (pdfView.isSearching) {
-
-
-                    List<Object> myList = Arrays.asList(pdfView.searchRecords.keySet().toArray());
-
-                    if (serchPage == -1) {
-                        serchPage = (int) myList.get(0);
+                if (pdfView.isSearching && !searchResultPages.isEmpty()) {
+                    currentResultIndex--;
+                    if (currentResultIndex < 0) {
+                        currentResultIndex = searchResultPages.size() - 1;
                     }
-
-                    int val = getPrevious(myList);
-                    pdfView.jumpTo(val);
-                    serchPage = val;
+                    int page = searchResultPages.get(currentResultIndex);
+                    pdfView.jumpTo(page);
+                    searchPage = page;
+                    updateSearchResultCount();
                 }
             }
         });
+        
+        // Next search result button - cycles forward through search results
         next.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (pdfView.isSearching) {
-                    List<Object> myList = Arrays.asList(pdfView.searchRecords.keySet().toArray());
-
-                    if (serchPage == -1) {
-                        serchPage = (int) myList.get(0);
+                if (pdfView.isSearching && !searchResultPages.isEmpty()) {
+                    currentResultIndex++;
+                    if (currentResultIndex >= searchResultPages.size()) {
+                        currentResultIndex = 0;
                     }
-                    int val = getNext(myList);
-
-                    pdfView.jumpTo(val);
-                    serchPage = val;
-
+                    int page = searchResultPages.get(currentResultIndex);
+                    pdfView.jumpTo(page);
+                    searchPage = page;
+                    updateSearchResultCount();
                 }
-
+            }
+        });
+        
+        // Listen for search completion to update UI
+        pdfView.setOnSearchListener(new PDFView.OnSearchListener() {
+            @Override
+            public void onSearchCompleted(int resultCount) {
+                updateSearchResults();
             }
         });
         pdfView.setSelectionPaintView(sv);
@@ -340,6 +354,11 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         Log.e(TAG, "modDate = " + meta.getModDate());
 
         printBookmarksTree(pdfView.getTableOfContents(), "-");
+        
+        // Clear search state when new document is loaded
+        searchResultPages.clear();
+        currentResultIndex = 0;
+        searchPage = -1;
 
     }
 
@@ -380,10 +399,50 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
     @Override
     public boolean onQueryTextSubmit(String s) {
+        // Validate search query
+        if (s == null || s.trim().isEmpty()) {
+            Toast.makeText(PDFViewActivity.this, R.string.search_no_results, Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        
+        Toast.makeText(PDFViewActivity.this, R.string.searching, Toast.LENGTH_SHORT).show();
+        // Start the search - results will be reported via OnSearchListener
         pdfView.search(s);
-        search_controller.setVisibility(View.VISIBLE);
-        Toast.makeText(PDFViewActivity.this, s, Toast.LENGTH_SHORT).show();
+        
         return false;
+    }
+    
+    /**
+     * Called when search completes via OnSearchListener.
+     * Updates the UI to show search results.
+     */
+    private void updateSearchResults() {
+        searchResultPages.clear();
+        currentResultIndex = 0;
+        
+        // Get all pages with search results
+        if (pdfView.searchRecords.isEmpty()) {
+            search_controller.setVisibility(View.GONE);
+            search_result_count.setText("");
+            Toast.makeText(PDFViewActivity.this, R.string.search_no_results, Toast.LENGTH_SHORT).show();
+        } else {
+            // Sort the page numbers
+            searchResultPages = new ArrayList<>(pdfView.searchRecords.keySet());
+            Collections.sort(searchResultPages);
+            
+            search_controller.setVisibility(View.VISIBLE);
+            
+            // Jump to first result
+            if (!searchResultPages.isEmpty()) {
+                searchPage = searchResultPages.get(0);
+                pdfView.jumpTo(searchPage);
+            }
+            
+            updateSearchResultCount();
+            
+            String message = getString(R.string.search_results_found, searchResultPages.size());
+            Toast.makeText(PDFViewActivity.this, message, Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
