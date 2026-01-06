@@ -508,10 +508,12 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 String message = getString(R.string.text_copied_with_count, selectedText.length());
                 Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
                 
-                // Log for debugging (only if debug logging is enabled)
-                if (Log.isLoggable(TAG, Log.DEBUG)) {
-                    String preview = selectedText.substring(0, Math.min(50, selectedText.length()));
-                    Log.d(TAG, "Copied text: " + preview + "...");
+                // Log for debugging (only if debug logging is enabled and text has content)
+                if (Log.isLoggable(TAG, Log.DEBUG) && selectedText.length() > 0) {
+                    int previewLength = Math.min(50, selectedText.length());
+                    String preview = selectedText.substring(0, previewLength);
+                    String suffix = selectedText.length() > 50 ? "..." : "";
+                    Log.d(TAG, "Copied text: " + preview + suffix);
                 }
             } else {
                 Toast.makeText(this, R.string.no_text_selected, Toast.LENGTH_SHORT).show();
