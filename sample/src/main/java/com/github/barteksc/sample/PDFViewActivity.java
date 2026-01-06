@@ -492,6 +492,12 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 // Get the clipboard manager
                 ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                 
+                // Check if clipboard service is available
+                if (clipboard == null) {
+                    Toast.makeText(this, R.string.clipboard_unavailable, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
                 // Create a clip with the selected text
                 ClipData clip = ClipData.newPlainText("PDF Text", selectedText);
                 
@@ -505,11 +511,12 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 // Log for debugging
                 Log.d(TAG, "Copied text: " + selectedText.substring(0, Math.min(50, selectedText.length())) + "...");
             } else {
-                Toast.makeText(this, "No text selected", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.no_text_selected, Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
             Log.e(TAG, "Error copying text", e);
-            Toast.makeText(this, "Error copying text: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            String errorMessage = getString(R.string.error_copying_text, e.getMessage());
+            Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show();
         }
     }
 }

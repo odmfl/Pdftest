@@ -8,4 +8,7 @@
     <string name="searching">Searching…</string>
     <string name="copy">Copy</string>
     <string name="text_copied">Text copied to clipboard</string>
+    <string name="no_text_selected">No text selected</string>
+    <string name="error_copying_text">Error copying text: %s</string>
+    <string name="clipboard_unavailable">Clipboard service unavailable</string>
 </resources>
