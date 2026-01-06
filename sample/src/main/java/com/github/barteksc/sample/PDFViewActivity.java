@@ -169,7 +169,9 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         }
     }
 
-
+    /**
+     * Update the search result count display to show current result position
+     */
     public void updateSearchResultCount() {
         if (searchResultPages.isEmpty()) {
             search_result_count.setText(getString(R.string.search_no_results));
@@ -182,6 +184,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
     @AfterViews
     void afterViews() {
+        // Previous search result button - cycles backwards through search results
         prev.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -197,6 +200,8 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 }
             }
         });
+        
+        // Next search result button - cycles forward through search results
         next.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -213,6 +218,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
             }
         });
         
+        // Listen for search completion to update UI
         pdfView.setOnSearchListener(new PDFView.OnSearchListener() {
             @Override
             public void onSearchCompleted(int resultCount) {
@@ -393,17 +399,23 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
     @Override
     public boolean onQueryTextSubmit(String s) {
+        // Validate search query
         if (s == null || s.trim().isEmpty()) {
             Toast.makeText(PDFViewActivity.this, R.string.search_no_results, Toast.LENGTH_SHORT).show();
             return false;
         }
         
         Toast.makeText(PDFViewActivity.this, R.string.searching, Toast.LENGTH_SHORT).show();
+        // Start the search - results will be reported via OnSearchListener
         pdfView.search(s);
         
         return false;
     }
     
+    /**
+     * Called when search completes via OnSearchListener.
+     * Updates the UI to show search results.
+     */
     private void updateSearchResults() {
         searchResultPages.clear();
         currentResultIndex = 0;
