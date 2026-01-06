@@ -859,17 +859,16 @@ public class PDFView extends RelativeLayout {
         this.enableSwipe = enableSwipe;
     }
 
+    /**
+     * Convert source (PDF) rectangle coordinates to view (screen) coordinates for a specific page.
+     * This is used for rendering search highlights on any page.
+     * 
+     * @param sRect Source rectangle in PDF coordinates
+     * @param vTarget Target rectangle in view coordinates (output)
+     * @param currentPage The page number this rectangle belongs to
+     */
     void sourceToViewRectFFSearch(@NotNull RectF sRect, @NotNull RectF vTarget, int currentPage) {
-
-
-        int pageX = (int) pdfFile.getSecondaryPageOffset(currentPage, getZoom());
-        int pageY = (int) pdfFile.getPageOffset(currentPage, getZoom());
-        vTarget.set(
-                sRect.left * getZoom() + ((pageX)) + currentXOffset,
-                sRect.top * getZoom() + ((pageY)) + currentYOffset,
-                sRect.right * getZoom() + ((pageX)) + currentXOffset,
-                sRect.bottom * getZoom() + ((pageY)) + currentYOffset
-        );
+        sourceToViewRectFFForPage(sRect, vTarget, currentPage);
     }
     
     /**
