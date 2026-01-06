@@ -72,6 +72,9 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
     private final static int REQUEST_CODE = 42;
     public static final int PERMISSION_CODE = 42042;
+    
+    /** Maximum length for debug log preview of copied text */
+    private static final int DEBUG_PREVIEW_LENGTH = 50;
 
     public static final String SAMPLE_FILE = "sample.pdf";
     public static final String READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
@@ -514,9 +517,9 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 // Log for debugging (only if debug logging is enabled and text has content)
                 if (Log.isLoggable(TAG, Log.DEBUG) && textLength > 0) {
                     try {
-                        int previewLength = Math.min(50, textLength);
+                        int previewLength = Math.min(DEBUG_PREVIEW_LENGTH, textLength);
                         String preview = selectedText.substring(0, previewLength);
-                        String suffix = textLength > 50 ? "..." : "";
+                        String suffix = textLength > DEBUG_PREVIEW_LENGTH ? "..." : "";
                         Log.d(TAG, "Copied text: " + preview + suffix);
                     } catch (StringIndexOutOfBoundsException e) {
                         // Handle rare concurrent modification case
