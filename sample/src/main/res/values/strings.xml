@@ -6,4 +6,6 @@
     <string name="search_result_format">%1$d of %2$d</string>
     <string name="search_results_found">%d results found</string>
     <string name="searching">Searching…</string>
+    <string name="copy">Copy</string>
+    <string name="text_copied">Text copied to clipboard</string>
 </resources>

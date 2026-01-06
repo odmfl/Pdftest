@@ -17,6 +17,9 @@ package com.github.barteksc.sample;
 
 import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -28,6 +31,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.SearchView;
@@ -85,6 +89,11 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     ImageButton next;
     @ViewById
     TextView search_result_count;
+
+    @ViewById
+    LinearLayout copy_controller;
+    @ViewById
+    Button copy_button;
 
     @NonConfigurationInstance
     Uri uri;
@@ -197,6 +206,8 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                     pdfView.jumpTo(page);
                     searchPage = page;
                     updateSearchResultCount();
+                    // Refresh highlights
+                    pdfView.redrawSel();
                 }
             }
         });
@@ -214,6 +225,8 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                     pdfView.jumpTo(page);
                     searchPage = page;
                     updateSearchResultCount();
+                    // Refresh highlights
+                    pdfView.redrawSel();
                 }
             }
         });
@@ -240,10 +253,22 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 if (hasSelection) {
                     setTitle("Select Text");
                     setTitleColor(getResources().getColor(android.R.color.holo_blue_bright));
+                    // Show copy button when text is selected
+                    copy_controller.setVisibility(View.VISIBLE);
                 } else {
                     setTitle(pdfFileName);
                     setTitleColor(getResources().getColor(android.R.color.white));
+                    // Hide copy button when no text is selected
+                    copy_controller.setVisibility(View.GONE);
                 }
+            }
+        });
+
+        // Copy button click handler
+        copy_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                copySelectedText();
             }
         });
 
@@ -450,5 +475,36 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
 
         return false;
+    }
+
+    /**
+     * Copy the currently selected text to the system clipboard.
+     * Shows a toast message confirming the copy operation.
+     */
+    private void copySelectedText() {
+        try {
+            String selectedText = pdfView.getSelection();
+            if (selectedText != null && !selectedText.trim().isEmpty()) {
+                // Get the clipboard manager
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                
+                // Create a clip with the selected text
+                ClipData clip = ClipData.newPlainText("PDF Text", selectedText);
+                
+                // Set the clip to the clipboard
+                clipboard.setPrimaryClip(clip);
+                
+                // Show confirmation toast
+                Toast.makeText(this, R.string.text_copied, Toast.LENGTH_SHORT).show();
+                
+                // Optionally clear the selection after copying
+                // pdfView.clearSelection(); // Uncomment if you want to clear selection after copy
+            } else {
+                Toast.makeText(this, "No text selected", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error copying text", e);
+            Toast.makeText(this, "Error copying text: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 }

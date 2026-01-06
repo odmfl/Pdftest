@@ -227,29 +227,30 @@ public class PDocSelection extends View {
                         pDocView.getAllMatchOnPage(record);
                         int page = record.currentPage != -1 ? record.currentPage : pDocView.currentPage;
                         ArrayList<SearchRecordItem> data = (ArrayList<SearchRecordItem>) record.data;
-                        for (int j = 0, len = data.size(); j < len; j++) {
-                            RectF[] rects = data.get(j).rects;
-                            if (rects != null) {
-                                for (RectF rI : rects) {
-                                    pDocView.sourceToViewRectFFSearch(rI, VR, page);
-                                    matrix.reset();
-                                    int bmWidth = (int) rI.width();
-                                    int bmHeight = (int) rI.height();
-                                    pDocView.setMatrixArray(pDocView.srcArray, 0, 0, bmWidth, 0, bmWidth, bmHeight, 0, bmHeight);
-                                    pDocView.setMatrixArray(pDocView.dstArray, VR.left, VR.top, VR.right, VR.top, VR.right, VR.bottom, VR.left, VR.bottom);
+                        if (data != null) {
+                            for (int j = 0, len = data.size(); j < len; j++) {
+                                RectF[] rects = data.get(j).rects;
+                                if (rects != null) {
+                                    for (RectF rI : rects) {
+                                        pDocView.sourceToViewRectFFSearch(rI, VR, page);
+                                        matrix.reset();
+                                        int bmWidth = (int) rI.width();
+                                        int bmHeight = (int) rI.height();
+                                        pDocView.setMatrixArray(pDocView.srcArray, 0, 0, bmWidth, 0, bmWidth, bmHeight, 0, bmHeight);
+                                        pDocView.setMatrixArray(pDocView.dstArray, VR.left, VR.top, VR.right, VR.top, VR.right, VR.bottom, VR.left, VR.bottom);
 
-                                    matrix.setPolyToPoly(pDocView.srcArray, 0, pDocView.dstArray, 0, 4);
-                                    matrix.postRotate(0, pDocView.getScreenWidth(), pDocView.getScreenHeight());
+                                        matrix.setPolyToPoly(pDocView.srcArray, 0, pDocView.dstArray, 0, 4);
+                                        matrix.postRotate(0, pDocView.getScreenWidth(), pDocView.getScreenHeight());
 
-                                    canvas.save();
-                                    canvas.concat(matrix);
-                                    VR.set(0, 0, bmWidth, bmHeight);
-                                    canvas.drawRect(VR, rectHighlightPaint);
-                                    canvas.restore();
+                                        canvas.save();
+                                        canvas.concat(matrix);
+                                        VR.set(0, 0, bmWidth, bmHeight);
+                                        canvas.drawRect(VR, rectHighlightPaint);
+                                        canvas.restore();
+                                    }
                                 }
                             }
                         }
-
                     }
                 }
             }
