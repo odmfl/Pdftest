@@ -483,7 +483,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
     /**
      * Copy the currently selected text to the system clipboard.
-     * Shows a toast message confirming the copy operation.
+     * Shows a toast message confirming the copy operation with character count.
      */
     private void copySelectedText() {
         try {
@@ -498,11 +498,12 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 // Set the clip to the clipboard
                 clipboard.setPrimaryClip(clip);
                 
-                // Show confirmation toast
-                Toast.makeText(this, R.string.text_copied, Toast.LENGTH_SHORT).show();
+                // Show confirmation toast with character count
+                String message = getString(R.string.text_copied) + " (" + selectedText.length() + " chars)";
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
                 
-                // Optionally clear the selection after copying
-                // pdfView.clearSelection(); // Uncomment if you want to clear selection after copy
+                // Log for debugging
+                Log.d(TAG, "Copied text: " + selectedText.substring(0, Math.min(50, selectedText.length())) + "...");
             } else {
                 Toast.makeText(this, "No text selected", Toast.LENGTH_SHORT).show();
             }
